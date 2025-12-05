@@ -1,5 +1,5 @@
 {% extends 'core/base.html' %} {% block content %}
-<div class="container animate-fade-up" style="max-width: 550px">
+<div class="container animate-fade-up" style="max-width: 550px; width: 100%;">
   <!-- Create Post Section -->
   <div class="glass-card" style="margin-bottom: 2rem; padding: 1.5rem">
     <form method="POST" enctype="multipart/form-data" id="postForm">
@@ -10,10 +10,9 @@
         <!-- Profile Pic with Fallback -->
         <div style="width: 45px; height: 45px; flex-shrink: 0; position: relative;">
              <img src="{{ user.profile.profile_picture.url }}" 
-                  style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; display: block;"
-                  onerror="this.style.display='none'; document.getElementById('feed_fallback_{{ user.username }}').style.display='flex'">
-             <div id="feed_fallback_{{ user.username }}" 
-                  style="display: none; width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary))); align-items: center; justify-content: center; font-weight: bold; color: white;">
+                  style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;"
+                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+             <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%;">
                   {{ user.username|slice:":2"|upper }}
              </div>
         </div>
@@ -32,7 +31,7 @@
       </div>
       
       <div style="border-top: 1px solid var(--glass-border); padding-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-          <div style="display: flex; gap: 8px;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <label class="btn-action-small" style="cursor: pointer; color: #ff6b6b; white-space: nowrap;" onclick="showToast('Live video feature coming soon!', 'info')">
                   <i class="fas fa-video"></i> Live
               </label>
@@ -91,16 +90,22 @@
     >
       <div style="display: flex; gap: 15px">
         <a href="{% url 'profile' post.user.username %}">
-          <img
-            src="{{ post.user.profile.profile_picture.url }}"
-            style="
-              width: 50px;
-              height: 50px;
-              border-radius: 50%;
-              object-fit: cover;
-              border: 2px solid var(--glass-border);
-            "
-          />
+          <div style="width: 50px; height: 50px; position: relative;">
+            <img
+              src="{{ post.user.profile.profile_picture.url }}"
+              style="
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2px solid var(--glass-border);
+              "
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+            />
+            <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--glass-border); font-size: 1.1rem;">
+                {{ post.user.username|slice:":2" }}
+            </div>
+          </div>
         </a>
         <div>
           <a
@@ -138,7 +143,14 @@
     {% if post.shared_post %}
     <div style="border: 1px solid var(--glass-border); border-radius: 16px; padding: 1rem; margin-bottom: 1rem; background: rgba(255,255,255,0.02);">
         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
-             <img src="{{ post.shared_post.user.profile.profile_picture.url }}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+             <div style="width: 30px; height: 30px; position: relative;">
+                 <img src="{{ post.shared_post.user.profile.profile_picture.url }}" 
+                      style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                 <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
+                     {{ post.shared_post.user.username|slice:":2" }}
+                 </div>
+             </div>
              <a href="{% url 'profile' post.shared_post.user.username %}" style="color: white; text-decoration: none; font-weight: 600;">{{ post.shared_post.user.username }}</a>
              <span style="color: rgba(255,255,255,0.5); font-size: 0.8rem;">• {{ post.shared_post.created_at|timesince }} ago</span>
         </div>
@@ -194,7 +206,14 @@
             <div id="comments-list-{{ post.id }}">
                 {% for comment in post.comments.all %}
                 <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                    <img src="{{ comment.user.profile.profile_picture.url }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    <div style="width: 32px; height: 32px; position: relative; flex-shrink: 0;">
+                        <img src="{{ comment.user.profile.profile_picture.url }}" 
+                             style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                        <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
+                            {{ comment.user.username|slice:":2" }}
+                        </div>
+                    </div>
                     <div style="background: rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 18px; max-width: 85%;">
                         <a href="{% url 'profile' comment.user.username %}" style="text-decoration: none;">
                             <h5 style="margin: 0; font-size: 0.85rem; color: white;">{{ comment.user.username }}</h5>
@@ -208,7 +227,14 @@
             <form onsubmit="submitComment(event, {{ post.id }})" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
                 {% csrf_token %}
                 <input type="hidden" name="post_id" value="{{ post.id }}">
-                <img src="{{ user.profile.profile_picture.url }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                <div style="width: 32px; height: 32px; position: relative; flex-shrink: 0;">
+                    <img src="{{ user.profile.profile_picture.url }}" 
+                         style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                    <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
+                        {{ user.username|slice:":2" }}
+                    </div>
+                </div>
                 <input type="text" name="content" class="glass-input" placeholder="Write a comment..." style="border-radius: 20px; font-size: 0.9rem; padding: 8px 15px;" required>
                 <button type="submit" style="background: none; border: none; color: hsla(var(--primary)); cursor: pointer; padding: 5px;">
                     <i class="fas fa-paper-plane"></i>
