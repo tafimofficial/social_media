@@ -74,9 +74,8 @@
                 </div>
 
                 <!-- Input Area -->
-                <div style="padding: 15px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--glass-border);">
-                    <form id="msg-form" style="display: flex; gap: 10px;" onsubmit="sendMessage(event)">
-                        {% csrf_token %}
+                <div class="chat-input-area" style="padding: 15px; border-top: 1px solid var(--glass-border); background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);">
+                    <form onsubmit="sendMessage(event)" style="display: flex; gap: 10px;">
                         <input type="text" id="msg-input" class="glass-input" placeholder="Message..." style="border-radius: 50px; padding-left: 20px;" autocomplete="off">
                         <button type="submit" class="btn-primary" style="border-radius: 50%; width: 50px; height: 50px; padding: 0; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-paper-plane" style="transform: translateX(-2px);"></i>
@@ -117,8 +116,26 @@
         width: 100%;
         height: 100vh;
         z-index: 2000;
-        background: #0f0f14 !important; /* Solid bg for chat window on mobile */
-        padding-bottom: 80px; /* Space for bottom nav or input */
+        background: #0f0f14 !important;
+        padding-bottom: 90px; /* Space for fixed input */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-input-area {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 2001; /* Above keyboard and bottom nav */
+        padding-bottom: env(safe-area-inset-bottom, 20px) !important;
+    }
+
+    /* Hide mobile bottom nav when in chat window */
+    .mobile-bottom-nav {
+        /* We could hide it, but z-index 2000 of chat window should cover it. 
+           If not, we can force hide it via JS or sibling selector if possible (not possible here).
+           Let's rely on z-index 2001 for input. */
     }
 
     .mobile-hidden {
@@ -232,5 +249,14 @@
         });
     }, 2000);
 </script>
+</script>
+<style>
+    /* Hide bottom nav when in active chat to give space for input */
+    @media (max-width: 768px) {
+        .mobile-bottom-nav {
+            display: none !important;
+        }
+    }
+</style>
 {% endif %}
 {% endblock %}
