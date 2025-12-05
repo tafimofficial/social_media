@@ -272,11 +272,20 @@ def home(request):
         post = Post(user=request.user, content=content, visibility=visibility)
         
         if 'image' in request.FILES:
+            print(f"DEBUG: Image found in request.FILES: {request.FILES['image']}")
             post.image = request.FILES['image']
+        else:
+            print("DEBUG: No image in request.FILES")
+
         if 'video' in request.FILES:
             post.video = request.FILES['video']
                 
         post.save()
+        if post.image:
+             print(f"DEBUG: Post saved with image URL: {post.image.url}")
+        else:
+             print("DEBUG: Post saved WITHOUT image")
+
         messages.success(request, 'Post created!')
         return redirect('home')
     
