@@ -1,0 +1,172 @@
+{% extends 'core/base.html' %} 
+{% block content %}
+<div class="container animate-fade-up" style="max-width: 1100px; margin-top: 2rem; margin-bottom: 5rem; height: calc(100vh - 150px);">
+
+    <div style="display: flex; gap: 20px; height: 100%;">
+        
+        <!-- Sidebar (User List) -->
+        <div class="glass-card" style="width: 300px; padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="padding: 20px; border-bottom: 1px solid var(--glass-border);">
+                <h3 style="font-weight: 700; margin: 0;">Messages</h3>
+            </div>
+            
+            <div style="overflow-y: auto; flex: 1; padding: 10px;">
+                {% for chat_user in chat_users %}
+                <a href="{% url 'chat_with_user' chat_user.username %}" 
+                   style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; text-decoration: none; color: white; transition: background 0.2s; margin-bottom: 5px; {% if active_user == chat_user %}background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);{% endif %}">
+                    <img src="{{ chat_user.profile.profile_picture.url }}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">
+                    <div>
+                        <div style="font-weight: {% if chat_user.has_unread %}900{% else %}600{% endif %}; font-size: 0.95rem; {% if chat_user.has_unread %}color: white;{% endif %}">
+                            {{ chat_user.username }}
+                            {% if chat_user.has_unread %}<span style="display: inline-block; width: 8px; height: 8px; background: #ff3b30; border-radius: 50%; margin-left: 5px;"></span>{% endif %}
+                        </div>
+                        <div style="font-size: 0.8rem; opacity: {% if chat_user.has_unread %}1{% else %}0.6{% endif %}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; {% if chat_user.has_unread %}color: #ff3b30; font-weight: 600;{% endif %}">
+                            {% if chat_user.has_unread %}New messages{% else %}Open conversation{% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% empty %}
+                <div style="text-align: center; padding: 2rem 1rem; opacity: 0.5;">
+                    <p>No conversations yet. Go to Friends or Search to message someone!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Chat Window -->
+        <div class="glass-card" style="flex: 1; padding: 0; display: flex; flex-direction: column; overflow: hidden;">
+            {% if active_user %}
+                <!-- Chat Header -->
+                <div style="padding: 15px 25px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.2);">
+                    <img src="{{ active_user.profile.profile_picture.url }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                    <div>
+                        <h4 style="margin: 0;">{{ active_user.username }}</h4>
+                        <span style="font-size: 0.8rem; color: #2ed573;">• Online</span>
+                    </div>
+                </div>
+
+                <!-- Messages Area -->
+                <div id="messages-area" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+                    {% for msg in chat_messages %}
+                        <div class="message {% if msg.sender == request.user %}sent{% else %}received{% endif %}">
+                            <div class="msg-content">{{ msg.content }}</div>
+                            <div class="msg-time">{{ msg.timestamp|date:"H:i" }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Input Area -->
+                <div style="padding: 20px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--glass-border);">
+                    <form id="msg-form" style="display: flex; gap: 10px;" onsubmit="sendMessage(event)">
+                        {% csrf_token %}
+                        <input type="text" id="msg-input" class="glass-input" placeholder="Type a message..." style="border-radius: 50px; padding-left: 20px;" autocomplete="off">
+                        <button type="submit" class="btn-primary" style="border-radius: 50%; width: 50px; height: 50px; padding: 0; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-paper-plane" style="transform: translateX(-2px);"></i>
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5;">
+                    <i class="far fa-comments" style="font-size: 5rem; margin-bottom: 1rem;"></i>
+                    <h3>Select a conversation</h3>
+                    <p>Choose a friend from the list to start chatting</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<style>
+.message {
+    max-width: 70%;
+    padding: 10px 16px;
+    border-radius: 20px;
+    position: relative;
+    word-wrap: break-word;
+    margin-bottom: 5px;
+}
+
+.message.sent {
+    align-self: flex-end;
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-dark)));
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+.message.received {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    border-bottom-left-radius: 5px;
+}
+
+.msg-time {
+    font-size: 0.65rem;
+    opacity: 0.7;
+    margin-top: 4px;
+    text-align: right;
+}
+</style>
+
+{% if active_user %}
+<script>
+    const chatArea = document.getElementById('messages-area');
+    chatArea.scrollTop = chatArea.scrollHeight;
+
+    function sendMessage(e) {
+        e.preventDefault();
+        const input = document.getElementById('msg-input');
+        const text = input.value.trim();
+        if(!text) return;
+
+        // Optimistic UI
+        appendMessage(text, 'sent', new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+        input.value = '';
+        chatArea.scrollTop = chatArea.scrollHeight;
+
+        const formData = new FormData();
+        formData.append('to_user', '{{ active_user.username }}');
+        formData.append('content', text);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch('{% url "send_message_ajax" %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.status !== 'success') {
+                showToast('Failed to send message', 'error');
+            }
+        });
+    }
+
+    function appendMessage(text, type, time) {
+        const div = document.createElement('div');
+        div.className = `message ${type} animate-fade-up`;
+        div.style.animationDuration = '0.3s';
+        div.innerHTML = `
+            <div class="msg-content">${text}</div>
+            <div class="msg-time">${time}</div>
+        `;
+        chatArea.appendChild(div);
+    }
+
+    // Poll for new messages every 2 seconds
+    setInterval(() => {
+        fetch('{% url "get_messages_ajax" active_user.username %}')
+        .then(r => r.json())
+        .then(data => {
+            if(data.status === 'success' && data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    appendMessage(msg.content, 'received', msg.timestamp);
+                });
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+        });
+    }, 2000);
+</script>
+{% endif %}
+{% endblock %}

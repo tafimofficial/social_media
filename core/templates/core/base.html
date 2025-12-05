@@ -1,0 +1,156 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SocialSphere</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <nav class="glass-nav">
+        <div class="container nav-content">
+            <a href="{% url 'home' %}" class="logo">SocialSphere</a>
+            <div class="nav-links">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'search' %}" class="nav-item"><i class="fas fa-search"></i> Search</a>
+                    <a href="{% url 'home' %}" class="nav-item"><i class="fas fa-home"></i> Home</a>
+                    <a href="{% url 'profile' user.username %}" class="nav-item"><i class="fas fa-user"></i> Profile</a>
+                    <a href="{% url 'friends' %}" class="nav-item">
+                        <span style="position: relative; display: inline-block;">
+                            <i class="fas fa-users"></i>
+                            <span id="friend-req-badge" style="display: none; position: absolute; top: -8px; right: -8px; background: #ff3b30; color: white; font-size: 0.6rem; padding: 1px 5px; border-radius: 50%;">0</span>
+                        </span>
+                        Friends
+                    </a>
+                    <a href="{% url 'chat' %}" class="nav-item">
+                        <span style="position: relative; display: inline-block;">
+                            <i class="fas fa-comment-dots"></i>
+                            <span id="unread-badge" style="display: none; position: absolute; top: -8px; right: -8px; background: #ff3b30; color: white; font-size: 0.6rem; padding: 1px 5px; border-radius: 50%;">0</span>
+                        </span>
+                        Messages
+                    </a>
+                    <a href="{% url 'logout' %}" class="nav-item btn-logout">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-item">Login</a>
+                    <a href="{% url 'signup' %}" class="nav-item btn-primary">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container main-content">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} glass-alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{% static 'js/script.js' %}"></script>
+    
+    <!-- Global Toast Notifications -->
+    <div id="toast-container" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 3000; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>
+
+    <script>
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        
+        let bgColor = 'rgba(0, 0, 0, 0.85)';
+        let icon = '<i class="fas fa-info-circle"></i>';
+        
+        if (type === 'success') {
+            bgColor = 'rgba(46, 213, 115, 0.9)'; // Green
+            icon = '<i class="fas fa-check-circle"></i>';
+        } else if (type === 'error') {
+            bgColor = 'rgba(255, 71, 87, 0.9)'; // Red
+            icon = '<i class="fas fa-exclamation-circle"></i>';
+        }
+        
+        toast.className = 'animate-fade-up';
+        toast.style.cssText = `
+            background: ${bgColor};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            min-width: 250px;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        `;
+        
+        toast.innerHTML = `${icon} <span>${message}</span>`;
+        
+        container.appendChild(toast);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(20px)';
+            toast.style.transition = 'all 0.4s ease';
+            setTimeout(() => toast.remove(), 400);
+        }, 3000);
+    }
+    </script>
+    <script>
+    function updateUnreadCount() {
+        fetch('/messages/unread/count/')
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('unread-badge');
+                if (data.count > 0) {
+                    badge.innerText = data.count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            })
+            .catch(err => console.error('Error fetching unread count:', err));
+    }
+    
+    // Poll every 3 seconds
+    setInterval(updateUnreadCount, 3000);
+    // Initial call
+    document.addEventListener('DOMContentLoaded', updateUnreadCount);
+
+    function updateFriendRequestCount() {
+        fetch('/friend/requests/count/')
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('friend-req-badge');
+                if (data.count > 0) {
+                    badge.innerText = data.count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            })
+            .catch(err => console.error('Error fetching friend request count:', err));
+    }
+    
+    // Poll friend requests every 5 seconds
+    setInterval(updateFriendRequestCount, 5000);
+    document.addEventListener('DOMContentLoaded', updateFriendRequestCount);
+    </script>
+</body>
+</html>

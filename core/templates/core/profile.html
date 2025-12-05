@@ -1,0 +1,847 @@
+{% extends 'core/base.html' %} {% block content %}
+<div class="profile-header animate-fade-up">
+  <!-- Cover Photo Container -->
+  <div
+    class="cover-photo glass-card"
+    style="
+            background-image: url('{{ profile_user.profile.cover_photo.url }}'), linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary))); 
+            background-size: cover; 
+            background-position: center;
+            padding: 0;
+            border: none;
+         "
+  >
+    {% if is_owner %}
+    <button
+      onclick="document.getElementById('coverInput').click()"
+      class="btn-icon-edit animate-fade-up"
+      style="position: absolute; top: 20px; right: 20px"
+    >
+      <i class="fas fa-camera"></i>
+    </button>
+    <form
+      action="{% url 'update_cover' %}"
+      method="POST"
+      enctype="multipart/form-data"
+      style="display: none"
+    >
+      {% csrf_token %}
+      <input
+        type="file"
+        name="cover_photo"
+        id="coverInput"
+        onchange="this.form.submit()"
+      />
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="profile-info">
+    <!-- Profile Pic Container -->
+    <div class="profile-pic-container">
+      <img
+        src="{{ profile_user.profile.profile_picture.url }}"
+        alt="{{ profile_user.username }}"
+        class="profile-pic"
+        onclick="openLightbox(this.src)"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+      />
+      <!-- Fallback initials -->
+      <div class="profile-pic-fallback" style="display: none">
+        {{ profile_user.username|slice:":2"|upper }}
+      </div>
+
+      {% if is_owner %}
+      <div
+        class="profile-pic-overlay"
+        onclick="document.getElementById('avatarInput').click()"
+      >
+        <i class="fas fa-camera"></i>
+      </div>
+      <form
+        action="{% url 'update_avatar' %}"
+        method="POST"
+        enctype="multipart/form-data"
+        style="display: none"
+      >
+        {% csrf_token %}
+        <input
+          type="file"
+          name="profile_picture"
+          id="avatarInput"
+          onchange="this.form.submit()"
+        />
+      </form>
+      {% endif %}
+    </div>
+
+    <div class="profile-text">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <h1>{{ profile_user.username }}</h1>
+      </div>
+
+      <div style="position: relative">
+        <p style="color: rgba(255, 255, 255, 0.8); max-width: 600px">
+          {{ profile_user.profile.bio|default:"No bio yet." }}
+        </p>
+        {% if profile_user.profile.location %}
+        <p style="font-size: 0.9rem; margin-top: 5px; opacity: 0.7">
+          <i class="fas fa-map-marker-alt"></i> {{ profile_user.profile.location
+          }}
+        </p>
+        {% endif %} {% if is_owner %}
+        <button
+          onclick="openBioModal()"
+          class="btn-icon-small"
+          style="margin-left: 5px; color: rgba(255, 255, 255, 0.6)"
+          title="Edit Bio/Location"
+        >
+          <i class="fas fa-pen"></i>
+        </button>
+        {% endif %}
+      </div>
+
+      <div class="profile-stats">
+        <span><strong>{{ posts.count }}</strong> Posts</span>
+        <span><strong>{{ photos.count }}</strong> Photos</span>
+        <span><strong>{{ videos.count }}</strong> Videos</span>
+        <span onclick="openFriendList()" style="cursor: pointer;"><strong>{{ profile_user.profile.friends.count }}</strong> Friends</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Friend List Modal -->
+  <div id="friendListModal" class="modal-overlay" style="display: none;" onclick="closeFriendListCallback(event)">
+      <div class="glass-card modal-content animate-fade-up" style="max-width: 400px; max-height: 80vh; overflow-y: auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+              <h3>Friends</h3>
+              <button onclick="closeFriendList()" class="btn-icon-small"><i class="fas fa-times"></i></button>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 15px;">
+              {% for friend in profile_user.profile.friends.all %}
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                  <a href="{% url 'profile' friend.username %}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: white;">
+                      <img src="{{ friend.profile.profile_picture.url }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                      <span>{{ friend.username }}</span>
+                  </a>
+                  {% if is_owner %}
+                  <a href="{% url 'remove_friend' friend.username %}" class="btn-primary" style="background: rgba(255, 59, 48, 0.2); color: #ff3b30; padding: 5px 10px; font-size: 0.8rem; border: none;">
+                      Remove
+                  </a>
+                  {% endif %}
+              </div>
+              {% empty %}
+              <div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">
+                  No friends yet.
+              </div>
+              {% endfor %}
+          </div>
+      </div>
+  </div>
+
+  <script>
+  function openFriendList() {
+      document.getElementById('friendListModal').style.display = 'flex';
+  }
+  function closeFriendList() {
+      document.getElementById('friendListModal').style.display = 'none';
+  }
+  function closeFriendListCallback(event) {
+      if (event.target === document.getElementById('friendListModal')) {
+          closeFriendList();
+      }
+  }
+  </script>
+
+  {% if is_owner %}
+  <a
+    href="{% url 'edit_profile' %}"
+    class="btn-primary btn-glass-edit"
+    style="position: absolute; bottom: -60px; right: 20px"
+  >
+    <i class="fas fa-cog"></i> Settings
+  </a>
+  </a>
+  {% else %}
+  <div style="position: absolute; bottom: -60px; right: 20px; display: flex; gap: 15px; align-items: center;">
+    
+    <!-- Message Button (Available for all non-owners) -->
+    <a href="{% url 'chat_with_user' profile_user.username %}" class="btn-primary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); width: 45px; height: 45px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+        <i class="fas fa-comment-dots"></i>
+    </a>
+
+    <!-- Friend Status Button -->
+    {% if is_friend %}
+    <!-- Friend button hidden as requested -->
+    {% elif request_sent %}
+    <button class="btn-primary" style="background: rgba(255,255,255,0.1); opacity: 0.7; cursor: default;">
+        <i class="fas fa-clock"></i> Request Sent
+    </button>
+    {% elif request_received %}
+    <button onclick="handleRequest('accept', {{ request_received_id }}, this)" class="btn-primary" style="background: #2ed573; color: white; border: none;">
+        <i class="fas fa-user-check"></i> Accept Request
+    </button>
+    {% else %}
+    <button onclick="sendRequest('{{ profile_user.username }}', this)" class="btn-primary">
+        <i class="fas fa-user-plus"></i> Add Friend
+    </button>
+    {% endif %}
+    
+  </div>
+  {% endif %}
+
+  <!-- Bio Modal -->
+  <div id="bioModal" class="modal-overlay" style="display: none">
+    <div class="glass-card modal-content animate-fade-up">
+      <h3>Update Info</h3>
+      <form action="{% url 'update_bio' %}" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+          <label>Bio</label>
+          <textarea name="bio" class="glass-input" rows="3">
+{{ profile_user.profile.bio }}</textarea
+          >
+        </div>
+        <div class="form-group">
+          <label>Location</label>
+          <input
+            type="text"
+            name="location"
+            class="glass-input"
+            value="{{ profile_user.profile.location }}"
+          />
+        </div>
+        <div
+          style="
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 1rem;
+          "
+        >
+          <button
+            type="button"
+            onclick="closeBioModal()"
+            class="btn-primary"
+            style="
+              background: transparent;
+              border: 1px solid rgba(255, 255, 255, 0.2);
+            "
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openBioModal() {
+      document.getElementById("bioModal").style.display = "flex";
+    }
+    function closeBioModal() {
+      document.getElementById("bioModal").style.display = "none";
+    }
+  </script>
+  <style>
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+    }
+    .modal-content {
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .btn-icon-edit {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: transform 0.2s;
+    }
+    .btn-icon-edit:hover {
+      transform: scale(1.1);
+      background: rgba(0, 0, 0, 0.7);
+    }
+
+    .profile-pic-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+    .profile-pic-container:hover .profile-pic-overlay {
+      opacity: 1;
+    }
+
+    .btn-icon-small {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+    }
+    .btn-icon-small:hover {
+      color: white !important;
+    }
+  </style>
+   <!-- Lightbox -->
+   <div id="profileLightbox" class="lightbox" onclick="closeLightbox()">
+       <button class="lightbox-close">&times;</button>
+       <img id="lightboxImg" src="" onclick="event.stopPropagation()">
+   </div>
+
+   <script>
+    function openLightbox(url) {
+        const lb = document.getElementById('profileLightbox');
+        const img = document.getElementById('lightboxImg');
+        img.src = url;
+        lb.style.display = 'flex';
+        // Trigger reflow for animation
+        lb.offsetHeight;
+        lb.classList.add('active');
+    }
+
+    function closeLightbox() {
+        const lb = document.getElementById('profileLightbox');
+        lb.classList.remove('active');
+        setTimeout(() => {
+            lb.style.display = 'none';
+        }, 300);
+    }
+      function sendRequest(username, btn) {
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+        
+        fetch(`/friend/add/${username}/`)
+        .then(r => r.json())
+        .then(data => {
+            if(data.status === 'success') {
+                btn.innerHTML = '<i class="fas fa-clock"></i> Request Sent';
+                btn.style.background = 'rgba(255,255,255,0.1)';
+                btn.style.opacity = '0.7';
+                showToast('Friend request sent!', 'success');
+            } else {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                showToast(data.message, 'error');
+            }
+        });
+    }
+
+    function handleRequest(action, id, btn) {
+        fetch(`/friend/${action}/${id}/`)
+        .then(r => r.json())
+        .then(data => {
+            if(data.status === 'success') {
+                showToast('Request accepted!', 'success');
+                setTimeout(() => location.reload(), 500);
+            }
+        });
+    }
+  </script>
+</div>
+
+<div class="container animate-fade-up" style="max-width: 900px; margin-top: 3rem; margin-bottom: 5rem">
+  
+  <div class="tabs glass-card" style="padding: 10px; margin-bottom: 2rem">
+    <button class="tab-btn active" onclick="openTab(event, 'posts')">
+      Posts
+    </button>
+    <button class="tab-btn" onclick="openTab(event, 'photos')">Photos</button>
+    <button class="tab-btn" onclick="openTab(event, 'videos')">Videos</button>
+  </div>
+
+  <!-- Posts Tab -->
+  <div id="posts" class="tab-content" style="display: block">
+    
+    {% if is_owner %}
+    <!-- Create Post Section for Profile Owner -->
+    <div class="glass-card" style="margin: 0 auto 2rem auto; padding: 1.5rem; max-width: 550px;">
+        <form method="POST" enctype="multipart/form-data" id="postForm">
+          {% csrf_token %}
+          <input type="hidden" name="create_post" value="true">
+          
+          <div style="display: flex; gap: 15px; margin-bottom: 1rem; align-items: center;">
+            <div style="width: 45px; height: 45px; flex-shrink: 0; position: relative;">
+                 <img src="{{ user.profile.profile_picture.url }}" 
+                      style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; display: block;"
+                      onerror="this.style.display='none'; document.getElementById('profile_post_fallback').style.display='flex'">
+                 <div id="profile_post_fallback" 
+                      style="display: none; width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary))); align-items: center; justify-content: center; font-weight: bold; color: white;">
+                      {{ user.username|slice:":2"|upper }}
+                 </div>
+            </div>
+            
+            <input type="text" name="content" class="glass-input" placeholder="What's on your mind, {{ user.username }}?" style="border-radius: 50px; background: rgba(255,255,255,0.05); border: none; padding-left: 20px; height: 45px;">
+          </div>
+          
+          <!-- Preview Container -->
+          <div id="mediaPreview" style="display: none; margin-bottom: 1rem; position: relative;">
+              <button type="button" onclick="clearMedia()" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; z-index: 10;">×</button>
+              <img id="imagePreview" style="width: 100%; border-radius: 12px; display: none; max-height: 400px; object-fit: cover;">
+              <div id="videoPreview" style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; color: white; display: none;">
+                  <i class="fas fa-video" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+                  <span id="videoName"></span>
+              </div>
+          </div>
+          
+          <div style="border-top: 1px solid var(--glass-border); padding-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; gap: 8px;">
+                  <label class="btn-action-small" style="cursor: pointer; color: #ff6b6b; white-space: nowrap;" onclick="showToast('Live video feature coming soon!', 'info')">
+                      <i class="fas fa-video"></i> Live
+                  </label>
+                  
+                  <label class="btn-action-small" style="cursor: pointer; color: #45bd62; white-space: nowrap;">
+                      <i class="fas fa-image"></i> Photo
+                      <input type="file" name="image" id="imageInput" style="display: none;" accept="image/*" onchange="previewFile('image', this)">
+                  </label>
+
+                  <label class="btn-action-small" style="cursor: pointer; color: #f7b928; white-space: nowrap;">
+                      <i class="fas fa-film"></i> Video
+                      <input type="file" name="video" id="videoInput" style="display: none;" accept="video/*" onchange="previewFile('video', this)">
+                  </label>
+
+                  <label class="btn-action-small" style="cursor: pointer; color: #ff9f43; white-space: nowrap;" onclick="showToast('Activity feature coming soon!', 'info')">
+                      <i class="far fa-smile"></i> Activity
+                  </label>
+              </div>
+
+            <div style="display: flex; gap: 10px">
+              <select name="visibility" class="glass-input" style="padding: 5px 10px; font-size: 0.9rem; width: auto">
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+              </select>
+              <button type="submit" class="btn-primary" style="padding: 5px 20px; font-size: 0.9rem">Post</button>
+            </div>
+          </div>
+        </form>
+    </div>
+    
+    <script>
+    function previewFile(type, input) {
+        const previewContainer = document.getElementById('mediaPreview');
+        const imgPreview = document.getElementById('imagePreview');
+        const vidPreview = document.getElementById('videoPreview');
+        const vidName = document.getElementById('videoName');
+        const otherInput = type === 'image' ? document.getElementById('videoInput') : document.getElementById('imageInput');
+        
+        // Clear other input
+        otherInput.value = '';
+        
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            previewContainer.style.display = 'block';
+            
+            if (type === 'image') {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imgPreview.src = e.target.result;
+                    imgPreview.style.display = 'block';
+                    vidPreview.style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                vidName.innerText = file.name;
+                vidPreview.style.display = 'block';
+                imgPreview.style.display = 'none';
+            }
+        }
+    }
+
+    function clearMedia() {
+        document.getElementById('imageInput').value = '';
+        document.getElementById('videoInput').value = '';
+        document.getElementById('mediaPreview').style.display = 'none';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('videoPreview').style.display = 'none';
+    }
+    </script>
+    
+    <style>
+      .btn-action-small {
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: opacity 0.2s;
+      }
+      .btn-action-small:hover { opacity: 0.8; }
+    </style>
+    {% endif %}
+    {% for post in posts %}
+    <div class="glass-card post-card animate-fade-up" style="animation-delay: {{ forloop.counter0|add:1 }}00ms; max-width: 550px; margin: 0 auto 2rem auto;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+            <div style="display: flex; gap: 15px;">
+                <img src="{{ post.user.profile.profile_picture.url }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--glass-border);">
+                <div>
+                    <h4 style="margin: 0; font-size: 1.1rem; font-weight: 600;">{{ post.user.username }}</h4>
+                    <small style="color: rgba(255,255,255,0.6);">
+                        {{ post.created_at|timesince }} ago • 
+                        {% if post.visibility == 'public' %}
+                            <i class="fas fa-globe" title="Public"></i>
+                        {% else %}
+                            <i class="fas fa-lock" title="Private"></i>
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+            
+            {% if request.user == post.user %}
+            <a href="{% url 'edit_post' post.id %}" style="color: rgba(255,255,255,0.5); font-size: 0.9rem; transition: color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+                <i class="fas fa-pen"></i> Edit
+            </a>
+            {% endif %}
+        </div>
+
+        {% if post.content %}
+        <p style="font-size: 1.05rem; line-height: 1.6; margin-bottom: 1rem; color: rgba(255,255,255,0.9);">{{ post.content }}</p>
+        {% endif %}
+
+        <!-- Shared Post Display -->
+        {% if post.shared_post %}
+        <div style="border: 1px solid var(--glass-border); border-radius: 16px; padding: 1rem; margin-bottom: 1rem; background: rgba(255,255,255,0.02);">
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                 <img src="{{ post.shared_post.user.profile.profile_picture.url }}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                 <a href="{% url 'profile' post.shared_post.user.username %}" style="color: white; text-decoration: none; font-weight: 600;">{{ post.shared_post.user.username }}</a>
+                 <span style="color: rgba(255,255,255,0.5); font-size: 0.8rem;">• {{ post.shared_post.created_at|timesince }} ago</span>
+            </div>
+            <p style="margin-bottom: 10px; font-size: 0.95rem;">{{ post.shared_post.content }}</p>
+            {% if post.shared_post.image %}
+            <div style="border-radius: 12px; overflow: hidden;">
+                <img src="{{ post.shared_post.image.url }}" style="width: 100%; display: block; max-height: 300px; object-fit: cover;">
+            </div>
+            {% endif %}
+            {% if post.shared_post.video %}
+            <div style="border-radius: 12px; overflow: hidden;">
+                <video src="{{ post.shared_post.video.url }}" controls style="width: 100%; display: block; max-height: 300px;"></video>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if post.image %}
+        <div style="border-radius: 16px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--glass-border);">
+            <img src="{{ post.image.url }}" style="width: 100%; display: block; max-height: 500px; object-fit: cover;">
+        </div>
+        {% endif %}
+
+        {% if post.video %}
+        <div style="border-radius: 16px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--glass-border);">
+            <video src="{{ post.video.url }}" controls style="width: 100%; display: block; max-height: 500px;"></video>
+        </div>
+        {% endif %}
+        
+        <div style="display: flex; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px solid var(--glass-border); margin-bottom: 0.5rem; color: rgba(255,255,255,0.6); font-size: 0.9rem;">
+            <span id="like-count-{{ post.id }}"><i class="fas fa-heart" style="color: #ff6b6b;"></i> {{ post.total_likes }}</span>
+            <span id="comment-count-{{ post.id }}" style="cursor: pointer; text-decoration: underline;" onclick="toggleComments('comments-{{ post.id }}')" title="View all comments">{{ post.comments.count }} Comments</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; gap: 5px;">
+            <button class="btn-action-post {% if request.user in post.likes.all %}liked{% endif %}" onclick="toggleLike(this, {{ post.id }})">
+                <i class="{% if request.user in post.likes.all %}fas{% else %}far{% endif %} fa-heart"></i> Like
+            </button>
+            <button onclick="toggleComments('comments-{{ post.id }}')" class="btn-action-post">
+                <i class="far fa-comment"></i> Comment
+            </button>
+            <button onclick="openShareModal('{{ request.build_absolute_uri }}', {{ post.id }}, {% if post.user == request.user %}true{% else %}false{% endif %})" class="btn-action-post">
+                <i class="fas fa-share"></i> Share
+            </button>
+        </div>
+        
+        <!-- Comments Section -->
+        <div id="comments-{{ post.id }}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+            <div id="comments-list-{{ post.id }}">
+                {% for comment in post.comments.all %}
+                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                    <img src="{{ comment.user.profile.profile_picture.url }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 18px; max-width: 85%;">
+                        <a href="{% url 'profile' comment.user.username %}" style="text-decoration: none;">
+                            <h5 style="margin: 0; font-size: 0.85rem; color: white;">{{ comment.user.username }}</h5>
+                        </a>
+                        <p style="margin: 2px 0 0; font-size: 0.95rem; opacity: 0.9;">{{ comment.content }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <form onsubmit="submitComment(event, {{ post.id }})" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
+                {% csrf_token %}
+                <input type="hidden" name="post_id" value="{{ post.id }}">
+                <img src="{{ user.profile.profile_picture.url }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                <input type="text" name="content" class="glass-input" placeholder="Write a comment..." style="border-radius: 20px; font-size: 0.9rem; padding: 8px 15px;" required>
+                <button type="submit" style="background: none; border: none; color: hsla(var(--primary)); cursor: pointer; padding: 5px;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="glass-card" style="text-align: center; padding: 4rem;">
+        <p style="color: rgba(255,255,255,0.6);">No posts yet.</p>
+    </div>
+    {% endfor %}
+
+    <script>
+    function toggleLike(btn, postId) {
+        fetch(`/post/like/${postId}/`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.liked) {
+                btn.classList.add('liked');
+                btn.querySelector('i').classList.remove('far');
+                btn.querySelector('i').classList.add('fas');
+            } else {
+                btn.classList.remove('liked');
+                btn.querySelector('i').classList.remove('fas');
+                btn.querySelector('i').classList.add('far');
+            }
+            document.getElementById(`like-count-${postId}`).innerHTML = `<i class="fas fa-heart" style="color: #ff6b6b;"></i> ${data.count}`;
+        });
+    }
+
+    function submitComment(e, postId) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        fetch("{% url 'add_comment_ajax' %}", {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.status === 'success') {
+                const list = document.getElementById(`comments-list-${postId}`);
+                const html = `
+                <div style="display: flex; gap: 10px; margin-bottom: 12px;" class="animate-fade-up">
+                    <img src="${data.profile_url}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 18px; max-width: 85%;">
+                        <a href="/profile/${data.username}/" style="text-decoration: none;">
+                            <h5 style="margin: 0; font-size: 0.85rem; color: white;">${data.username}</h5>
+                        </a>
+                        <p style="margin: 2px 0 0; font-size: 0.95rem; opacity: 0.9;">${data.content}</p>
+                    </div>
+                </div>`;
+                list.insertAdjacentHTML('beforeend', html);
+                document.getElementById(`comment-count-${postId}`).innerText = `${data.count} Comments`;
+                form.reset();
+            }
+        });
+    }
+
+    function toggleComments(id) {
+        const el = document.getElementById(id);
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+            el.classList.add('animate-fade-up');
+        } else {
+            el.style.display = 'none';
+        }
+    }
+
+    function sharePost(url) {
+        // Deprecated
+    }
+    </script>
+    
+
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal-overlay" style="display: none;" onclick="closeShareModal(event)">
+        <div class="glass-card modal-content animate-fade-up" style="max-width: 400px;">
+            <h3 style="margin-bottom: 1.5rem; text-align: center;">Share Post</h3>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <button onclick="copyLink()" class="btn-primary" style="background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fas fa-link"></i> Copy Link
+                </button>
+                <button id="shareToFeedBtn" onclick="shareToProfile()" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fas fa-share-alt"></i> Share to Feed
+                </button>
+            </div>
+            <button onclick="closeShareModal(null, true)" style="margin-top: 1.5rem; width: 100%; background: transparent; border: none; color: rgba(255,255,255,0.5); cursor: pointer;">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+    let currentShareUrl = '';
+    let currentSharePostId = null;
+
+    function openShareModal(url, postId, isOwnPost) {
+        currentShareUrl = url;
+        currentSharePostId = postId;
+        
+        // Hide 'Share to Feed' if it's your own post
+        const shareFeedBtn = document.getElementById('shareToFeedBtn');
+        if (isOwnPost) {
+            shareFeedBtn.style.display = 'none';
+        } else {
+            shareFeedBtn.style.display = 'flex';
+        }
+        
+        document.getElementById('shareModal').style.display = 'flex';
+    }
+
+    function closeShareModal(e, force=false) {
+        if (force || e.target.id === 'shareModal') {
+            document.getElementById('shareModal').style.display = 'none';
+        }
+    }
+
+    function copyLink() {
+        navigator.clipboard.writeText(currentShareUrl).then(() => {
+        showToast('Link copied to clipboard!', 'success');
+            closeShareModal(null, true);
+        });
+    }
+
+    function shareToProfile() {
+        if(!currentSharePostId) return;
+        
+        const btn = document.getElementById('shareToFeedBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sharing...';
+        btn.disabled = true;
+        
+        fetch(`/post/share/${currentSharePostId}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+        .then(response => {
+            if (!response.ok) {
+                // If 403/400/500, try to parse JSON error or throw text
+                return response.json().then(err => { throw new Error(err.message || 'Server Error'); });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if(data.status === 'success') {
+                window.location.reload();
+            } else {
+                showToast('Error: ' + (data.message || 'Unknown error occurred'), 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Failed to share post: ' + error.message, 'error');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+    </script>
+  </div>
+
+  <!-- Photos Tab -->
+  <div id="photos" class="tab-content" style="display: none">
+    <div class="grid-gallery">
+      {% for post in photos %}
+      <div class="glass-card post-card" style="padding: 0; overflow: hidden">
+        <img
+          src="{{ post.image.url }}"
+          style="width: 100%; height: 250px; object-fit: cover"
+        />
+      </div>
+      {% empty %}
+      <p
+        style="
+          color: rgb(var(--text-muted));
+          grid-column: 1/-1;
+          text-align: center;
+        "
+      >
+        No photos shared.
+      </p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Videos Tab -->
+  <div id="videos" class="tab-content" style="display: none">
+    <div class="grid-gallery">
+      {% for post in videos %}
+      <div class="glass-card post-card" style="padding: 0; overflow: hidden">
+        <video
+          src="{{ post.video.url }}"
+          controls
+          style="width: 100%; height: 250px; object-fit: cover"
+        ></video>
+      </div>
+      {% empty %}
+      <p
+        style="
+          color: rgb(var(--text-muted));
+          grid-column: 1/-1;
+          text-align: center;
+        "
+      >
+        No videos shared.
+      </p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<script>
+    function sendRequest(username, btn) {
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+        
+        fetch(`/friend/add/${username}/`)
+        .then(r => r.json())
+        .then(data => {
+            if(data.status === 'success') {
+                btn.innerHTML = '<i class="fas fa-clock"></i> Request Sent';
+                btn.style.background = 'rgba(255,255,255,0.1)';
+                btn.style.opacity = '0.7';
+                showToast('Friend request sent!', 'success');
+            } else {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                showToast(data.message, 'error');
+            }
+        });
+    }
+
+    function handleRequest(action, id, btn) {
+        fetch(`/friend/${action}/${id}/`)
+        .then(r => r.json())
+        .then(data => {
+            if(data.status === 'success') {
+                showToast('Request accepted!', 'success');
+                setTimeout(() => location.reload(), 500);
+            }
+        });
+    }
+</script>
+{% endblock %}
