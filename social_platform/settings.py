@@ -123,7 +123,6 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -144,12 +143,32 @@ CLOUDINARY_STORAGE = {
 
 # Logic: In Production (DEBUG=False), we MUST use Cloudinary.
 # In Development (DEBUG=True), we use it only if keys are present.
+USE_CLOUDINARY = False
 if not DEBUG:
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    USE_CLOUDINARY = True
 elif get_env_variable('CLOUDINARY_API_KEY'):
+    USE_CLOUDINARY = True
+
+if USE_CLOUDINARY:
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+    # Keep legacy for compatibility just in case
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 else:
-    # Fallback to local storage if no keys (prevents crashes locally)
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # Default primary key field type
