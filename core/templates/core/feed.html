@@ -464,5 +464,39 @@ function copyLink() {
             btn.disabled = false;
         });
     }
+
+    // Media Preview Logic
+    function previewFile(type, input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        // Clear previous previews
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('videoPreview').style.display = 'none';
+        document.getElementById('mediaPreview').style.display = 'flex';
+
+        if (type === 'image') {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('imagePreview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        } else if (type === 'video') {
+            const vidContainer = document.getElementById('videoPreview');
+            document.getElementById('videoName').textContent = file.name;
+            vidContainer.style.display = 'block';
+        }
+    }
+
+    function clearMedia() {
+        document.getElementById('imageInput').value = '';
+        document.getElementById('videoInput').value = '';
+        document.getElementById('mediaPreview').style.display = 'none';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('videoPreview').style.display = 'none';
+        document.getElementById('imagePreview').src = '';
+    }
 </script>
 {% endblock %}
