@@ -157,7 +157,7 @@
         <p style="margin-bottom: 10px; font-size: 0.95rem;">{{ post.shared_post.content }}</p>
         {% if post.shared_post.image %}
         <div style="border-radius: 12px; overflow: hidden;">
-            <img src="{{ post.shared_post.image.url }}" style="width: 100%; display: block; max-height: 300px; object-fit: cover;" onerror="this.style.display='none'">
+            <img src="{{ post.shared_post.image.url }}" style="width: 100%; display: block; max-height: 300px; object-fit: cover;" onerror="this.parentElement.style.display='none'">
         </div>
         {% endif %}
         {% if post.shared_post.video %}
@@ -170,7 +170,7 @@
 
     {% if post.image %}
     <div style="border-radius: 16px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--glass-border);">
-      <img src="{{ post.image.url }}" style="width: 100%; display: block; max-height: 500px; object-fit: cover;" onerror="this.style.display='none'" />
+      <img src="{{ post.image.url }}" style="width: 100%; display: block; max-height: 500px; object-fit: cover;" onerror="this.parentElement.style.display='none'" />
     </div>
     {% endif %}
 

@@ -129,13 +129,24 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Cloudinary Configuration
+# Cloudinary Configuration
+def get_env_variable(var_name):
+    value = os.environ.get(var_name)
+    if value:
+        return value.strip() # Remove any accidental whitespace
+    return None
+
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+    'CLOUD_NAME': get_env_variable('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': get_env_variable('CLOUDINARY_API_KEY'),
+    'API_SECRET': get_env_variable('CLOUDINARY_API_SECRET'),
 }
 
-if os.environ.get('CLOUDINARY_API_KEY'):
+# Logic: In Production (DEBUG=False), we MUST use Cloudinary.
+# In Development (DEBUG=True), we use it only if keys are present.
+if not DEBUG:
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+elif get_env_variable('CLOUDINARY_API_KEY'):
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 else:
     # Fallback to local storage if no keys (prevents crashes locally)
