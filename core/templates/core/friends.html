@@ -1,0 +1,117 @@
+{% extends 'core/base.html' %} 
+{% block content %}
+<div class="container animate-fade-up" style="max-width: 900px; margin-top: 3rem; margin-bottom: 5rem;">
+    
+    <!-- Friend Requests -->
+    {% if friend_requests %}
+    <div style="margin-bottom: 3rem;">
+        <h2 style="margin-bottom: 1.5rem; font-weight: 700;">Friend Requests <span style="font-size: 1rem; opacity: 0.6; font-weight: 400;">({{ friend_requests.count }})</span></h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+            {% for req in friend_requests %}
+            <div class="glass-card" style="padding: 20px; text-align: center; border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                <img src="{{ req.from_user.profile.profile_picture.url }}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.1);">
+                <a href="{% url 'profile' req.from_user.username %}" style="color: white; text-decoration: none; font-weight: 600; font-size: 1.1rem;">{{ req.from_user.username }}</a>
+                <div style="display: flex; gap: 10px; width: 100%; margin-top: 5px;">
+                    <button onclick="handleRequest('accept', {{ req.id }}, this)" class="btn-primary" style="flex: 1; padding: 8px; font-size: 0.9rem;">Confirm</button>
+                    <button onclick="handleRequest('reject', {{ req.id }}, this)" class="btn-primary" style="flex: 1; padding: 8px; font-size: 0.9rem; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);">Delete</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Suggestions (People You May Know) -->
+    <div style="margin-bottom: 3rem;">
+        <h2 style="margin-bottom: 1.5rem; font-weight: 700;">People You May Know</h2>
+        {% if suggestions %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+            {% for user in suggestions %}
+            <div class="glass-card" style="padding: 20px; text-align: center; border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative; overflow: hidden;">
+                <img src="{{ user.profile.profile_picture.url }}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.1);">
+                <a href="{% url 'profile' user.username %}" style="color: white; text-decoration: none; font-weight: 600; font-size: 1.1rem;">{{ user.username }}</a>
+                <p style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-top: -5px;">{{ user.profile.bio|truncatechars:30|default:"Suggested for you" }}</p>
+                <button onclick="sendRequest('{{ user.username }}', this)" class="btn-primary" style="width: 100%; padding: 8px; font-size: 0.9rem; margin-top: 5px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-user-plus"></i> Add Friend
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="glass-card" style="text-align: center; padding: 3rem;">
+            <p style="color: rgba(255,255,255,0.6);">No new suggestions right now.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- My Friends -->
+    <div>
+        <h2 style="margin-bottom: 1.5rem; font-weight: 700;">My Friends <span style="font-size: 1rem; opacity: 0.6; font-weight: 400;">({{ friends.count }})</span></h2>
+        {% if friends %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+            {% for friend in friends %}
+            <div class="glass-card" style="padding: 15px; display: flex; align-items: center; gap: 15px; border-radius: 16px;">
+                <img src="{{ friend.profile.profile_picture.url }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                <div style="flex: 1;">
+                    <a href="{% url 'profile' friend.username %}" style="color: white; text-decoration: none; font-weight: 600; display: block;">{{ friend.username }}</a>
+                </div>
+                <!-- Optional: Remove friend menu could go here -->
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: rgba(255,255,255,0.6);">You haven't added any friends yet.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+function sendRequest(username, btn) {
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+    
+    fetch(`/friend/add/${username}/`)
+    .then(r => r.json())
+    .then(data => {
+        if(data.status === 'success') {
+            btn.innerHTML = '<i class="fas fa-check"></i> Sent';
+            btn.style.background = 'rgba(46, 213, 115, 0.2)';
+            btn.style.color = '#2ed573';
+            showToast('Friend request sent!', 'success');
+        } else {
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+function handleRequest(action, id, btn) {
+    const card = btn.closest('.glass-card');
+    const container = card.parentElement;
+    
+    fetch(`/friend/${action}/${id}/`)
+    .then(r => r.json())
+    .then(data => {
+        if(data.status === 'success') {
+            card.style.transform = 'scale(0.9)';
+            card.style.opacity = '0';
+            setTimeout(() => {
+                card.remove();
+                if(container.children.length === 0) {
+                    location.reload(); // Reload if section empty to update counts/layout
+                } else if(action === 'accept') {
+                    // Ideally we'd move it to the friends list DOM, but reload is easier for MVP consistency
+                    showToast('Friend request accepted!', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('Request removed.', 'info');
+                }
+            }, 300);
+        }
+    });
+}
+</script>
+{% endblock %}

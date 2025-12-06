@@ -1,0 +1,260 @@
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Hide Desktop Nav */
+    .nav-links {
+        display: none;
+    }
+
+    .glass-nav .logo {
+        margin: 0 auto;
+        /* Center logo on mobile */
+    }
+
+    /* Mobile Bottom Nav */
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(15, 15, 20, 0.85);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border-top: 1px solid var(--glass-border);
+        justify-content: space-around;
+        align-items: center;
+        padding: 12px 0;
+        z-index: 1000;
+        padding-bottom: env(safe-area-inset-bottom, 20px);
+        /* iPhone X+ safe area */
+    }
+
+    .mobile-nav-item {
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.7rem;
+        gap: 4px;
+        position: relative;
+        transition: color 0.3s;
+    }
+
+    .mobile-nav-item i {
+        font-size: 1.4rem;
+        margin-bottom: 2px;
+    }
+
+    .mobile-nav-item.active {
+        color: white;
+    }
+
+    .mobile-nav-item.active i {
+        color: hsla(var(--primary));
+    }
+
+    /* Feed Adjustments */
+    .glass-card {
+        padding: 1.5rem;
+        /* Reduce padding */
+        border-radius: 20px;
+    }
+
+    /* Adjust profile header on mobile */
+    .profile-header {
+        margin-bottom: 11rem;
+        /* Increase space for info */
+    }
+
+    .profile-info {
+        flex-direction: column;
+        align-items: center;
+        left: 0;
+        width: 100%;
+        bottom: -160px;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .profile-pic-container {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+
+    .profile-pic,
+    .profile-pic-fallback {
+        width: 120px;
+        height: 120px;
+    }
+
+    .profile-text h1 {
+        font-size: 2rem;
+        text-align: center;
+    }
+
+    .profile-stats {
+        justify-content: center;
+        gap: 20px;
+        font-size: 0.9rem;
+    }
+
+    /* Fix: Make edit buttons visible on mobile */
+    .profile-pic-overlay {
+        opacity: 1 !important;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 50%;
+    }
+
+    .btn-icon-edit {
+        opacity: 1;
+        width: 35px;
+        height: 35px;
+        top: 15px !important;
+        right: 15px !important;
+    }
+
+    .cover-photo {
+        height: 200px;
+        border-radius: 0 0 20px 20px;
+        /* Round bottom corners only or keep all */
+    }
+
+    /* Auth Containers */
+    .auth-container {
+        margin: 4rem auto;
+        padding: 0 15px;
+    }
+
+    /* Toast Position */
+    #toast-container {
+        bottom: 90px;
+        /* Above nav bar */
+        width: 90%;
+    }
+}
+
+@media (min-width: 769px) {
+    .mobile-bottom-nav {
+        display: none;
+    }
+}
+@media (max-width: 768px) {
+    /* Search Page Mobile */
+    .search-bar-card {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .search-form {
+        flex-direction: row; /* Keep inputs side-by-side if they fit, or column? row is usually fine if btn is icon */
+    }
+    
+    .search-input {
+        font-size: 1rem;
+        padding: 10px 15px;
+    }
+    
+    .search-btn {
+        padding: 0 15px;
+    }
+
+    .search-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .tab-btn {
+        flex: 1 1 auto;
+        text-align: center;
+        font-size: 0.85rem;
+        padding: 6px 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Profile Mobile Polish */
+    .profile-cover {
+        height: 200px;
+    }
+    
+    .profile-info-container {
+        position: relative;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        margin-top: -70px; /* Pull avatar up into cover */
+        padding: 0 15px;
+        gap: 15px;
+    }
+    
+    .profile-avatar-large {
+        width: 120px;
+        height: 120px;
+        border-width: 4px;
+    }
+    
+    .profile-details {
+        margin-bottom: 0;
+        width: 100%;
+    }
+    
+    .profile-username {
+        font-size: 2rem;
+    }
+    
+    .profile-bio {
+        margin: 10px auto;
+        font-size: 0.9rem;
+    }
+    
+    .profile-stats-bar {
+        justify-content: center;
+        margin-top: 15px;
+        font-size: 0.9rem;
+    }
+    
+    .profile-actions {
+        position: relative;
+        bottom: 0;
+        right: 0;
+        margin-top: 15px;
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .mobile-search-btn {
+        display: flex; /* Show on mobile */
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    
+    /* Ensure title is centered or left-aligned properly if search is on right */
+    .glass-nav .container {
+        position: relative; 
+    }
+}
+
+/* ensure profile header margin is correct on mobile to prevent overlap */
+@media (max-width: 768px) {
+    .profile-header {
+        margin-bottom: 12rem; /* Enough space for the stacked info */
+        padding-bottom: 1rem;
+    }
+}

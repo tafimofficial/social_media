@@ -1,0 +1,492 @@
+{% extends 'core/base.html' %} {% block content %}
+<div class="container animate-fade-up" style="max-width: 550px; width: 100%;">
+  <!-- Create Post Section -->
+  <div class="glass-card" style="margin-bottom: 2rem; padding: 1.5rem">
+    <form method="POST" enctype="multipart/form-data" id="postForm">
+      {% csrf_token %}
+      <input type="hidden" name="create_post" value="true">
+      
+      <div class="post-input-wrapper">
+        <!-- Profile Pic with Fallback -->
+        <div class="post-avatar-container">
+             <img src="{{ user.profile.profile_picture.url }}" 
+                  class="post-avatar-img"
+                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+             <div class="avatar-fallback post-avatar-fallback">
+                  {{ user.username|slice:":2"|upper }}
+             </div>
+        </div>
+        
+        <input type="text" name="content" class="glass-input post-input" placeholder="What's on your mind, {{ user.username }}?">
+      </div>
+      
+      <!-- Preview Container -->
+      <div id="mediaPreview" style="display: none; margin-bottom: 1rem; position: relative;">
+          <button type="button" onclick="clearMedia()" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; z-index: 10;">×</button>
+          <img id="imagePreview" style="width: 100%; border-radius: 12px; display: none; max-height: 400px; object-fit: cover;">
+          <div id="videoPreview" style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; color: white; display: none;">
+              <i class="fas fa-video" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+              <span id="videoName"></span>
+          </div>
+      </div>
+      
+      <div class="post-actions-bar">
+          <div class="media-actions">
+              <label class="btn-action-small live-btn" onclick="showToast('Live video feature coming soon!', 'info')">
+                  <i class="fas fa-video"></i> Live
+              </label>
+              
+              <!-- Photo Button -->
+              <label class="btn-action-small photo-btn">
+                  <i class="fas fa-image"></i> Photo
+                  <input type="file" name="image" id="imageInput" style="display: none;" accept="image/*" onchange="previewFile('image', this)">
+              </label>
+
+              <!-- Video Button -->
+              <label class="btn-action-small video-btn">
+                  <i class="fas fa-film"></i> Video
+                  <input type="file" name="video" id="videoInput" style="display: none;" accept="video/*" onchange="previewFile('video', this)">
+              </label>
+
+              <label class="btn-action-small activity-btn" onclick="showToast('Activity feature coming soon!', 'info')">
+                  <i class="far fa-smile"></i> Activity
+              </label>
+          </div>
+
+        <div class="post-submit-area">
+          <select name="visibility" class="glass-input visibility-select">
+            <option value="public">Public</option>
+            <option value="private">Private</option>
+          </select>
+          <button type="submit" class="btn-primary post-submit-btn">Post</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Feed -->
+  {% for post in posts %}
+  <div
+    class="glass-card post-card animate-fade-up"
+    style="animation-delay: {{ forloop.counter0|add:1 }}00ms;"
+  >
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1rem;
+      "
+    >
+      <div style="display: flex; gap: 15px">
+        <a href="{% url 'profile' post.user.username %}">
+          <div style="width: 50px; height: 50px; position: relative;">
+            <img
+              src="{{ post.user.profile.profile_picture.url }}"
+              style="
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2px solid var(--glass-border);
+              "
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+            />
+            <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--glass-border); font-size: 1.1rem;">
+                {{ post.user.username|slice:":2" }}
+            </div>
+          </div>
+        </a>
+        <div>
+          <a
+            href="{% url 'profile' post.user.username %}"
+            style="text-decoration: none; color: white"
+          >
+            <h4 style="margin: 0; font-size: 1.1rem">
+              {{ post.user.username }}
+            </h4>
+          </a>
+          <small style="color: rgba(255, 255, 255, 0.6)">
+            {{ post.created_at|timesince }} ago • {% if post.visibility == 'public' %}
+            <i class="fas fa-globe"></i>
+            {% else%}
+            <i class="fas fa-lock"></i>
+            {% endif %}
+          </small>
+        </div>
+      </div>
+
+      {% if request.user == post.user %}
+      <a
+        href="{% url 'edit_post' post.id %}"
+        style="color: rgba(255, 255, 255, 0.5); font-size: 0.9rem"
+        ><i class="fas fa-pen"></i> Edit</a
+      >
+      {% endif %}
+    </div>
+
+    <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 1rem">
+      {{ post.content }}
+    </p>
+
+    <!-- Shared Post Display -->
+    {% if post.shared_post %}
+    <div style="border: 1px solid var(--glass-border); border-radius: 16px; padding: 1rem; margin-bottom: 1rem; background: rgba(255,255,255,0.02);">
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+             <div style="width: 30px; height: 30px; position: relative;">
+                 <img src="{{ post.shared_post.user.profile.profile_picture.url }}" 
+                      style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                 <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
+                     {{ post.shared_post.user.username|slice:":2" }}
+                 </div>
+             </div>
+             <a href="{% url 'profile' post.shared_post.user.username %}" style="color: white; text-decoration: none; font-weight: 600;">{{ post.shared_post.user.username }}</a>
+             <span style="color: rgba(255,255,255,0.5); font-size: 0.8rem;">• {{ post.shared_post.created_at|timesince }} ago</span>
+        </div>
+        <p style="margin-bottom: 10px; font-size: 0.95rem;">{{ post.shared_post.content }}</p>
+        {% if post.shared_post.image %}
+        <div style="border-radius: 12px; overflow: hidden;">
+            <img src="{{ post.shared_post.image.url }}" style="width: 100%; display: block; max-height: 300px; object-fit: cover;" onerror="this.parentElement.style.display='none'">
+        </div>
+        {% endif %}
+        {% if post.shared_post.video %}
+        <div style="border-radius: 12px; overflow: hidden;">
+            <video src="{{ post.shared_post.video.url }}" controls style="width: 100%; display: block; max-height: 300px;"></video>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if post.image %}
+    <div style="border-radius: 16px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--glass-border);">
+      <img src="{{ post.image.url }}" style="width: 100%; display: block; max-height: 500px; object-fit: cover;" />
+    </div>
+    {% endif %}
+
+    {% if post.video %}
+    <div style="border-radius: 16px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--glass-border);">
+      <video
+        src="{{ post.video.url }}"
+        controls
+        style="width: 100%; display: block; max-height: 500px;"
+      ></video>
+    </div>
+    {% endif %}
+
+    <div style="display: flex; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px solid var(--glass-border); margin-bottom: 0.5rem; color: rgba(255,255,255,0.6); font-size: 0.9rem;">
+            <span id="like-count-{{ post.id }}"><i class="fas fa-heart" style="color: #ff6b6b;"></i> {{ post.total_likes }}</span>
+            <span id="comment-count-{{ post.id }}" style="cursor: pointer; text-decoration: underline;" onclick="toggleComments('comments-{{ post.id }}')" title="View all comments">{{ post.comments.count }} Comments</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; gap: 5px;">
+            <button class="btn-action-post {% if request.user in post.likes.all %}liked{% endif %}" onclick="toggleLike(this, {{ post.id }})">
+                <i class="{% if request.user in post.likes.all %}fas{% else %}far{% endif %} fa-heart"></i> Like
+            </button>
+            <button onclick="toggleComments('comments-{{ post.id }}')" class="btn-action-post">
+                <i class="far fa-comment"></i> Comment
+            </button>
+            <button onclick="openShareModal('{{ request.build_absolute_uri }}', {{ post.id }}, {% if post.user == request.user %}true{% else %}false{% endif %})" class="btn-action-post">
+                <i class="fas fa-share"></i> Share
+            </button>
+        </div>
+        
+        <!-- Comments Section -->
+        <div id="comments-{{ post.id }}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+            <div id="comments-list-{{ post.id }}">
+                {% for comment in post.comments.all %}
+                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                    <div style="width: 32px; height: 32px; position: relative; flex-shrink: 0;">
+                        <img src="{{ comment.user.profile.profile_picture.url }}" 
+                             style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" loading="lazy">
+                        <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
+                            {{ comment.user.username|slice:":2" }}
+                        </div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 18px; max-width: 85%;">
+                        <a href="{% url 'profile' comment.user.username %}" style="text-decoration: none;">
+                            <h5 style="margin: 0; font-size: 0.85rem; color: white;">{{ comment.user.username }}</h5>
+                        </a>
+                        <p style="margin: 2px 0 0; font-size: 0.95rem; opacity: 0.9;">{{ comment.content }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <form onsubmit="submitComment(event, {{ post.id }})" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
+                {% csrf_token %}
+                <input type="hidden" name="post_id" value="{{ post.id }}">
+                <div style="width: 32px; height: 32px; position: relative; flex-shrink: 0;">
+                    <img src="{{ user.profile.profile_picture.url }}" 
+                         style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                    <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
+                        {{ user.username|slice:":2" }}
+                    </div>
+                </div>
+                <input type="text" name="content" class="glass-input" placeholder="Write a comment..." style="border-radius: 20px; font-size: 0.9rem; padding: 8px 15px;" required>
+                <button type="submit" style="background: none; border: none; color: hsla(var(--primary)); cursor: pointer; padding: 5px;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+  </div>
+  {% empty %}
+  <div class="glass-card" style="text-align: center; padding: 4rem">
+    <h3>No posts yet</h3>
+    <p style="color: rgba(255, 255, 255, 0.6)">
+      Be the first to share something!
+    </p>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+    function previewFile(type, input) {
+        const previewContainer = document.getElementById('mediaPreview');
+        const imgPreview = document.getElementById('imagePreview');
+        const vidPreview = document.getElementById('videoPreview');
+        const vidName = document.getElementById('videoName');
+        const otherInput = type === 'image' ? document.getElementById('videoInput') : document.getElementById('imageInput');
+        
+        // Clear other input
+        otherInput.value = '';
+        
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            previewContainer.style.display = 'block';
+            
+            if (type === 'image') {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imgPreview.src = e.target.result;
+                    imgPreview.style.display = 'block';
+                    vidPreview.style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                vidName.innerText = file.name;
+                vidPreview.style.display = 'block';
+                imgPreview.style.display = 'none';
+            }
+        }
+    }
+
+    function clearMedia() {
+        document.getElementById('imageInput').value = '';
+        document.getElementById('videoInput').value = '';
+        document.getElementById('mediaPreview').style.display = 'none';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('videoPreview').style.display = 'none';
+    }
+
+    function toggleLike(btn, postId) {
+        fetch(`/post/like/${postId}/`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.liked) {
+                btn.classList.add('liked');
+                btn.querySelector('i').classList.remove('far');
+                btn.querySelector('i').classList.add('fas');
+            } else {
+                btn.classList.remove('liked');
+                btn.querySelector('i').classList.remove('fas');
+                btn.querySelector('i').classList.add('far');
+            }
+            document.getElementById(`like-count-${postId}`).innerHTML = `<i class="fas fa-heart" style="color: #ff6b6b;"></i> ${data.count}`;
+        });
+    }
+
+    function submitComment(e, postId) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        fetch("{% url 'add_comment_ajax' %}", {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.status === 'success') {
+                const list = document.getElementById(`comments-list-${postId}`);
+                const html = `
+                <div style="display: flex; gap: 10px; margin-bottom: 12px;" class="animate-fade-up">
+                    <img src="${data.profile_url}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 18px; max-width: 85%;">
+                        <a href="/profile/${data.username}/" style="text-decoration: none;">
+                            <h5 style="margin: 0; font-size: 0.85rem; color: white;">${data.username}</h5>
+                        </a>
+                        <p style="margin: 2px 0 0; font-size: 0.95rem; opacity: 0.9;">${data.content}</p>
+                    </div>
+                </div>`;
+                list.insertAdjacentHTML('beforeend', html);
+                document.getElementById(`comment-count-${postId}`).innerText = `${data.count} Comments`;
+                form.reset();
+            }
+        });
+    }
+
+  function toggleComments(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === "none" ? "block" : "none";
+  }
+</script>
+
+<style>
+  .btn-action-small {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.2s;
+  }
+  .btn-action-small:hover {
+    opacity: 0.8;
+  }
+
+  .btn-action-post {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s;
+  }
+  .btn-action-post:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .btn-action-post.liked {
+    color: #ff6b6b;
+  }
+</style>
+<!-- Share Modal -->
+<div id="shareModal" class="modal-overlay" style="display: none;" onclick="closeShareModal(event)">
+    <div class="glass-card modal-content animate-fade-up" style="max-width: 400px;">
+        <h3 style="margin-bottom: 1.5rem; text-align: center;">Share Post</h3>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <button onclick="copyLink()" class="btn-primary" style="background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <i class="fas fa-link"></i> Copy Link
+            </button>
+            <button id="shareToFeedBtn" onclick="shareToProfile()" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <i class="fas fa-share-alt"></i> Share to Feed
+            </button>
+        </div>
+        <button onclick="closeShareModal(null, true)" style="margin-top: 1.5rem; width: 100%; background: transparent; border: none; color: rgba(255,255,255,0.5); cursor: pointer;">Cancel</button>
+    </div>
+</div>
+
+<script>
+let currentShareUrl = '';
+let currentSharePostId = null;
+
+function openShareModal(url, postId, isOwnPost) {
+    currentShareUrl = url;
+    currentSharePostId = postId;
+    
+    // Hide 'Share to Feed' if it's your own post
+    const shareFeedBtn = document.getElementById('shareToFeedBtn');
+    if (isOwnPost) {
+        shareFeedBtn.style.display = 'none';
+    } else {
+        shareFeedBtn.style.display = 'flex';
+    }
+    
+    document.getElementById('shareModal').style.display = 'flex';
+}
+
+function closeShareModal(e, force=false) {
+    if (force || e.target.id === 'shareModal') {
+        document.getElementById('shareModal').style.display = 'none';
+    }
+}
+
+function copyLink() {
+    navigator.clipboard.writeText(currentShareUrl).then(() => {
+        showToast('Link copied to clipboard!', 'success');
+        closeShareModal(null, true);
+    });
+}
+
+    function shareToProfile() {
+        if(!currentSharePostId) return;
+        
+        const btn = document.getElementById('shareToFeedBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sharing...';
+        btn.disabled = true;
+        
+        fetch(`/post/share/${currentSharePostId}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+        .then(response => {
+            if (!response.ok) {
+                // If 403/400/500, try to parse JSON error or throw text
+                return response.json().then(err => { throw new Error(err.message || 'Server Error'); });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if(data.status === 'success') {
+                window.location.reload();
+            } else {
+                showToast('Error: ' + (data.message || 'Unknown error occurred'), 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Failed to share post: ' + error.message, 'error');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    // Media Preview Logic
+    function previewFile(type, input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        // Clear previous previews
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('videoPreview').style.display = 'none';
+        document.getElementById('mediaPreview').style.display = 'flex';
+
+        if (type === 'image') {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('imagePreview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        } else if (type === 'video') {
+            const vidContainer = document.getElementById('videoPreview');
+            document.getElementById('videoName').textContent = file.name;
+            vidContainer.style.display = 'block';
+        }
+    }
+
+    function clearMedia() {
+        document.getElementById('imageInput').value = '';
+        document.getElementById('videoInput').value = '';
+        document.getElementById('mediaPreview').style.display = 'none';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('videoPreview').style.display = 'none';
+        document.getElementById('imagePreview').src = '';
+    }
+</script>
+{% endblock %}

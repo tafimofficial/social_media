@@ -1,0 +1,58 @@
+{% extends 'core/base.html' %} {% block content %}
+<div
+  class="container animate-fade-up"
+  style="max-width: 600px; margin-top: 3rem"
+>
+  <div class="glass-card">
+    <h2 style="margin-bottom: 2rem">Edit Post</h2>
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group">
+        <textarea
+          name="content"
+          class="glass-input"
+          rows="5"
+          placeholder="What's on your mind?"
+        >
+{{ form.content.value }}</textarea
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Visibility</label>
+        {{ form.visibility }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Media (Optional)</label>
+        {{ form.image }} {{ form.video }}
+      </div>
+
+      <div style="margin-top: 2rem; display: flex; gap: 10px">
+        <button type="submit" class="btn-primary">Save Changes</button>
+        <a
+          href="{% url 'home' %}"
+          class="btn-primary"
+          style="
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+          "
+          >Cancel</a
+        >
+        <a 
+          href="{% url 'delete_post' form.instance.id %}" 
+          class="btn-primary"
+          style="background: rgba(255, 71, 87, 0.2); color: #ff6b6b; border: 1px solid #ff6b6b;"
+        >
+          <i class="fas fa-trash"></i> Delete
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  document
+    .querySelectorAll("input, select, textarea")
+    .forEach((el) => el.classList.add("glass-input"));
+</script>
+{% endblock %}
