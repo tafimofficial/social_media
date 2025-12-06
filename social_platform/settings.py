@@ -37,9 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage',
     'django.contrib.staticfiles',
-    'cloudinary',
     'core',
 ]
 
@@ -123,54 +121,18 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
-# Cloudinary Configuration
-# Cloudinary Configuration
-def get_env_variable(var_name):
-    value = os.environ.get(var_name)
-    if value:
-        return value.strip() # Remove any accidental whitespace
-    return None
-
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': get_env_variable('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': get_env_variable('CLOUDINARY_API_KEY'),
-    'API_SECRET': get_env_variable('CLOUDINARY_API_SECRET'),
-}
-
-# Logic: In Production (DEBUG=False), we MUST use Cloudinary.
-# In Development (DEBUG=True), we use it only if keys are present.
-USE_CLOUDINARY = False
-if not DEBUG:
-    USE_CLOUDINARY = True
-elif get_env_variable('CLOUDINARY_API_KEY'):
-    USE_CLOUDINARY = True
-
-if USE_CLOUDINARY:
-    STORAGES = {
-        "default": {
-            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-        },
-        "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-        },
-    }
-    # Keep legacy for compatibility just in case
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-else:
-    STORAGES = {
-        "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
-        },
-        "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-        },
-    }
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
