@@ -236,6 +236,12 @@ def get_messages_ajax(request, username):
     return JsonResponse({'status': 'success', 'messages': data})
 
 # ... (Previous Auth Views: signup, login_view, logout_view stay same) ...
+
+def dashboard_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    return render(request, 'core/dashboard.html')
+
 def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -269,6 +275,11 @@ def logout_view(request):
     return redirect('login')
 
 @login_required
+def create_post_view(request):
+    # For now, redirect to home where the post form exists.
+    return redirect('home')
+
+@login_required
 def home(request):
     if request.method == 'POST' and 'create_post' in request.POST:
         content = request.POST.get('content', '')
@@ -293,9 +304,11 @@ def home(request):
 
         messages.success(request, 'Post created!')
         return redirect('home')
-    
+
+
     # Handle Comment
     if request.method == 'POST' and 'create_comment' in request.POST:
+
         content = request.POST.get('content')
         post_id = request.POST.get('post_id')
         post = get_object_or_404(Post, id=post_id)

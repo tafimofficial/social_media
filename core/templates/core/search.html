@@ -1,6 +1,250 @@
 {% extends 'core/base.html' %} 
 {% block content %}
-<div class="container animate-fade-up" style="max-width: 800px; margin-top: 3rem; margin-bottom: 5rem;">
+<div class="container animate-fade-up search-container">
+<style>
+    /* Search Page Specific Styles */
+    .search-container {
+        max-width: 900px !important;
+        margin: 0 auto;
+        padding-bottom: 5rem;
+    }
+
+    .search-bar-card {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+
+    .search-form {
+        display: flex;
+        width: 100%;
+        gap: 10px;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 12px 20px;
+        font-size: 1rem;
+        border-radius: 50px;
+    }
+    
+    .search-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    /* Tabs */
+    .search-tabs {
+        display: flex;
+        gap: 10px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 16px;
+    }
+    
+    .search-tabs::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+        padding: 8px 18px;
+        border-radius: 50px;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+
+    /* Grids */
+    .people-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 2rem;
+    }
+
+    .user-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem;
+        transition: transform 0.2s;
+    }
+    .user-card:hover { transform: translateY(-5px); }
+
+    .user-card-avatar-wrapper {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 1rem;
+        position: relative;
+    }
+
+    .user-card-img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid rgba(255,255,255,0.1);
+    }
+
+    .user-card-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: white;
+        text-decoration: none;
+        margin-bottom: 5px;
+    }
+
+    .user-card-bio {
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.6);
+        margin-bottom: 1rem;
+        line-height: 1.4;
+    }
+
+    .btn-view-profile {
+        font-size: 0.85rem;
+        color: var(--primary-glow);
+        text-decoration: none;
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 5px 15px;
+        border-radius: 20px;
+        transition: all 0.2s;
+    }
+    .btn-view-profile:hover {
+        background: rgba(255,255,255,0.1);
+        color: white;
+    }
+
+    /* Posts List */
+    .posts-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .search-post-card {
+        padding: 1.5rem;
+    }
+    
+    .post-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 1rem;
+    }
+    
+    .post-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .post-info {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .post-author { margin: 0; font-size: 1rem; }
+    .post-time { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+    
+    .post-content {
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+    
+    .post-media-wrapper {
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+    .post-media-img, .post-media-video {
+        width: 100%;
+        display: block;
+        max-height: 400px;
+        object-fit: cover;
+    }
+
+    /* Empties */
+    .empty-state, .initial-empty-state {
+        text-align: center;
+        padding: 4rem 1rem;
+        color: rgba(255,255,255,0.5);
+    }
+    
+    .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+    .large-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.3; }
+
+    .section-heading {
+        margin: 2rem 0 1rem;
+        font-size: 1.2rem;
+        color: rgba(255,255,255,0.8);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 10px;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .search-bar-card {
+            padding: 1rem;
+        }
+        
+        .people-grid {
+            grid-template-columns: repeat(2, 1fr); /* 2 Cols on mobile */
+            gap: 15px;
+        }
+        
+        .user-card {
+            padding: 1.2rem;
+        }
+        
+        .user-card-avatar-wrapper {
+            width: 70px;
+            height: 70px;
+        }
+        
+        .user-card-name { font-size: 1rem; }
+        .user-card-bio { font-size: 0.8rem; }
+        
+        .search-post-card { padding: 1rem; }
+    }
+    
+    @media (max-width: 480px) {
+        .people-grid {
+            grid-template-columns: 1fr; /* 1 Col on tiny screens */
+        }
+        .user-card {
+            flex-direction: row;
+            text-align: left;
+            justify-content: start;
+            gap: 15px;
+            padding: 1rem;
+        }
+        .user-card-avatar-wrapper {
+            margin-bottom: 0;
+            width: 60px;
+            height: 60px;
+            flex-shrink: 0;
+        }
+        .btn-view-profile {
+            display: none; /* Hide button on tiny screens to save space, clicking card works (if we wrap card in a) */
+        }
+        /* Make the whole card clickable logic would be better but for CSS only: */
+        .user-card-name { font-size: 1.1rem; }
+    }
+</style>
 
     <!-- Search Bar -->
     <div class="glass-card search-bar-card">
@@ -14,7 +258,7 @@
                 placeholder="Search..." 
                 autofocus
             >
-            <button type="submit" class="btn-primary search-btn">
+            <button type="submit" class="search-btn">
                 <i class="fas fa-search"></i>
             </button>
         </form>
@@ -37,25 +281,27 @@
         {% if filter_type == 'all' or filter_type == 'people' %}
             {% if users or filter_type == 'people' %}
                 {% if filter_type == 'all' and users %}
-                <h3 style="margin-bottom: 1rem; font-weight: 700;">People</h3>
+                <h3 class="section-heading">People</h3>
                 {% endif %}
                 
                 {% if users %}
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-bottom: 3rem;">
+                <div class="people-grid">
                     {% for user_obj in users %}
-                    <div class="glass-card" style="padding: 20px; text-align: center; border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                        <img src="{{ user_obj.profile.profile_picture.url }}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.1);">
-                        <a href="{% url 'profile' user_obj.username %}" style="color: white; text-decoration: none; font-weight: 600; font-size: 1.1rem;">{{ user_obj.username }}</a>
-                        <p style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-top: -5px;">{{ user_obj.profile.bio|truncatechars:30|default:"User" }}</p>
-                        <a href="{% url 'profile' user_obj.username %}" class="btn-primary" style="width: 100%; padding: 8px; font-size: 0.9rem; margin-top: 5px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); text-decoration: none; display: block;">
+                    <div class="glass-card user-card">
+                        <div class="user-card-avatar-wrapper">
+                            <img src="{{ user_obj.profile.profile_picture.url }}" class="user-card-img">
+                        </div>
+                        <a href="{% url 'profile' user_obj.username %}" class="user-card-name">{{ user_obj.username }}</a>
+                        <p class="user-card-bio">{{ user_obj.profile.bio|truncatechars:30|default:"User" }}</p>
+                        <a href="{% url 'profile' user_obj.username %}" class="btn-view-profile">
                             View Profile
                         </a>
                     </div>
                     {% endfor %}
                 </div>
                 {% elif filter_type == 'people' %}
-                <div style="text-align: center; padding: 3rem; color: rgba(255,255,255,0.6);">
-                    <i class="fas fa-user-slash" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <div class="empty-state">
+                    <i class="fas fa-user-slash empty-icon"></i>
                     <p>No people found matching "{{ query }}"</p>
                 </div>
                 {% endif %}
@@ -65,54 +311,54 @@
         <!-- Posts Section -->
         {% if filter_type != 'people' %}
             {% if filter_type == 'all' and posts %}
-            <h3 style="margin-bottom: 1rem; font-weight: 700;">Posts</h3>
+            <h3 class="section-heading">Posts</h3>
             {% endif %}
 
             {% if posts %}
-            <div style="display: flex; flex-direction: column; gap: 2rem;">
+            <div class="posts-list">
                 {% for post in posts %}
-                <div class="glass-card post-card" style="padding: 1.5rem;">
-                    <div style="display: flex; gap: 15px; margin-bottom: 1rem;">
-                        <img src="{{ post.user.profile.profile_picture.url }}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">
-                        <div>
-                            <h4 style="margin: 0; font-size: 1rem;"><a href="{% url 'profile' post.user.username %}" style="color: white; text-decoration: none;">{{ post.user.username }}</a></h4>
-                            <small style="color: rgba(255,255,255,0.6);">{{ post.created_at|timesince }} ago</small>
+                <div class="glass-card post-card search-post-card">
+                    <div class="post-header">
+                        <img src="{{ post.user.profile.profile_picture.url }}" class="post-avatar">
+                        <div class="post-info">
+                            <h4 class="post-author"><a href="{% url 'profile' post.user.username %}" class="link-unstyled">{{ post.user.username }}</a></h4>
+                            <small class="post-time">{{ post.created_at|timesince }} ago</small>
                         </div>
                     </div>
                     
                     {% if post.content %}
-                    <p style="margin-bottom: 1rem; font-size: 1rem; line-height: 1.5;">{{ post.content }}</p>
+                    <p class="post-content">{{ post.content }}</p>
                     {% endif %}
                     
                     {% if post.image %}
-                    <div style="border-radius: 12px; overflow: hidden; margin-bottom: 1rem;">
-                        <img src="{{ post.image.url }}" style="width: 100%; display: block; max-height: 400px; object-fit: cover;">
+                    <div class="post-media-wrapper">
+                        <img src="{{ post.image.url }}" class="post-media-img" loading="lazy">
                     </div>
                     {% endif %}
                     
                     {% if post.video %}
-                    <div style="border-radius: 12px; overflow: hidden; margin-bottom: 1rem;">
-                        <video src="{{ post.video.url }}" controls style="width: 100%;"></video>
+                    <div class="post-media-wrapper">
+                        <video src="{{ post.video.url }}" controls class="post-media-video"></video>
                     </div>
                     {% endif %}
                     
-                    <a href="{% url 'home' %}" class="btn-action-small" style="color: rgba(255,255,255,0.6); text-decoration: none;">
+                    <a href="{% url 'home' %}#post-{{ post.id }}" class="btn-action-small view-context-btn">
                         <i class="fas fa-external-link-alt"></i> View in Feed
                     </a>
                 </div>
                 {% endfor %}
             </div>
             {% elif filter_type != 'all' %}
-            <div style="text-align: center; padding: 3rem; color: rgba(255,255,255,0.6);">
-                <i class="far fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+            <div class="empty-state">
+                <i class="far fa-folder-open empty-icon"></i>
                 <p>No results found matching "{{ query }}"</p>
             </div>
             {% endif %}
         {% endif %}
         
         {% if filter_type == 'all' and not users and not posts %}
-         <div style="text-align: center; padding: 3rem; color: rgba(255,255,255,0.6);">
-            <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+         <div class="empty-state">
+            <i class="fas fa-search empty-icon"></i>
             <p>No results found for "{{ query }}"</p>
         </div>
         {% endif %}
@@ -120,9 +366,9 @@
     </div>
     {% else %}
     <!-- Empty State -->
-    <div style="text-align: center; margin-top: 4rem; opacity: 0.6;">
-        <i class="fas fa-search" style="font-size: 4rem; margin-bottom: 1.5rem;"></i>
-        <p style="font-size: 1.2rem;">Type to search for friends, posts, and media.</p>
+    <div class="initial-empty-state">
+        <i class="fas fa-search large-icon"></i>
+        <p>Type to search for friends, posts, and media.</p>
     </div>
     {% endif %}
 

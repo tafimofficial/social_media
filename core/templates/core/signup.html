@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="auth-container animate-fade-up">
-    <div class="glass-card">
-        <h2 style="margin-bottom: 2rem; font-weight: 700;">Join SocialSphere</h2>
+    <div class="glass-card auth-card">
+        <h2 class="auth-title">Join SocialSphere</h2>
         <form method="POST">
             {% csrf_token %}
             {% for field in form %}
@@ -11,17 +11,17 @@
                 <label class="form-label">{{ field.label }}</label>
                 {{ field }}
                 {% if field.help_text %}
-                <small style="color: rgba(255,255,255,0.5); display: block; margin-top: 5px;">{{ field.help_text }}</small>
+                <small class="help-text">{{ field.help_text }}</small>
                 {% endif %}
                 {% for error in field.errors %}
-                <small style="color: #ff6b6b;">{{ error }}</small>
+                <small class="error-text">{{ error }}</small>
                 {% endfor %}
             </div>
             {% endfor %}
-            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Sign Up</button>
+            <button type="submit" class="btn-primary auth-btn">Sign Up</button>
         </form>
-        <p style="margin-top: 1.5rem; color: var(--text-muted);">
-            Already have an account? <a href="{% url 'login' %}" style="color: rgb(var(--primary));">Login</a>
+        <p class="auth-footer">
+            Already have an account? <a href="{% url 'login' %}" class="link-accent">Login</a>
         </p>
     </div>
 </div>

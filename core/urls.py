@@ -1,11 +1,13 @@
-from django.urls import path
+from django.urls import path, re_path
+from django.views.static import serve
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    path('', views.dashboard_view, name='dashboard'),
+    path('login/', views.login_view, name='login'),
     path('signup/', views.signup, name='signup'),
-    path('', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('profile/edit/', views.edit_profile_view, name='edit_profile'),
     path('profile/update/cover/', views.update_cover_view, name='update_cover'),
@@ -16,6 +18,7 @@ urlpatterns = [
     path('post/edit/<int:post_id>/', views.edit_post_view, name='edit_post'),
     path('post/delete/<int:post_id>/', views.delete_post_view, name='delete_post'),
     path('post/share/<int:post_id>/', views.share_post_view, name='share_post'),
+    path('post/create/', views.create_post_view, name='create_post'),
     
     # Friend System
     path('friends/', views.friends_view, name='friends'),
@@ -38,6 +41,8 @@ urlpatterns = [
     path('profile/<str:username>/', views.profile_view, name='profile'),
     path('home/', views.home, name='home'),
 ]
+urlpatterns += [re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT})]
+urlpatterns += [re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT})]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

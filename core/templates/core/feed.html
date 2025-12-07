@@ -1,245 +1,442 @@
 {% extends 'core/base.html' %} {% block content %}
-<div class="container animate-fade-up" style="max-width: 550px; width: 100%;">
-  <!-- Create Post Section -->
-  <div class="glass-card" style="margin-bottom: 2rem; padding: 1.5rem">
-    <form method="POST" enctype="multipart/form-data" id="postForm">
-      {% csrf_token %}
-      <input type="hidden" name="create_post" value="true">
-      
-      <div class="post-input-wrapper">
-        <!-- Profile Pic with Fallback -->
-        <div class="post-avatar-container">
-             <img src="{{ user.profile.profile_picture.url }}" 
-                  class="post-avatar-img"
-                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-             <div class="avatar-fallback post-avatar-fallback">
-                  {{ user.username|slice:":2"|upper }}
-             </div>
-        </div>
-        
-        <input type="text" name="content" class="glass-input post-input" placeholder="What's on your mind, {{ user.username }}?">
-      </div>
-      
-      <!-- Preview Container -->
-      <div id="mediaPreview" style="display: none; margin-bottom: 1rem; position: relative;">
-          <button type="button" onclick="clearMedia()" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; z-index: 10;">×</button>
-          <img id="imagePreview" style="width: 100%; border-radius: 12px; display: none; max-height: 400px; object-fit: cover;">
-          <div id="videoPreview" style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; color: white; display: none;">
-              <i class="fas fa-video" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
-              <span id="videoName"></span>
-          </div>
-      </div>
-      
-      <div class="post-actions-bar">
-          <div class="media-actions">
-              <label class="btn-action-small live-btn" onclick="showToast('Live video feature coming soon!', 'info')">
-                  <i class="fas fa-video"></i> Live
-              </label>
-              
-              <!-- Photo Button -->
-              <label class="btn-action-small photo-btn">
-                  <i class="fas fa-image"></i> Photo
-                  <input type="file" name="image" id="imageInput" style="display: none;" accept="image/*" onchange="previewFile('image', this)">
-              </label>
+<style>
+    /* Critical CSS Fallback for Feed & Polish */
+    .post-avatar-container {
+        width: 45px;
+        height: 45px;
+        flex-shrink: 0;
+        position: relative;
+    }
+    .post-avatar-img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        display: block;
+    }
+    .avatar-fallback {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+        color: white;
+        font-weight: bold;
+    }
 
-              <!-- Video Button -->
-              <label class="btn-action-small video-btn">
-                  <i class="fas fa-film"></i> Video
-                  <input type="file" name="video" id="videoInput" style="display: none;" accept="video/*" onchange="previewFile('video', this)">
-              </label>
-
-              <label class="btn-action-small activity-btn" onclick="showToast('Activity feature coming soon!', 'info')">
-                  <i class="far fa-smile"></i> Activity
-              </label>
-          </div>
-
-        <div class="post-submit-area">
-          <select name="visibility" class="glass-input visibility-select">
-            <option value="public">Public</option>
-            <option value="private">Private</option>
-          </select>
-          <button type="submit" class="btn-primary post-submit-btn">Post</button>
-        </div>
-      </div>
-    </form>
-  </div>
-
-  <!-- Feed -->
-  {% for post in posts %}
-  <div
-    class="glass-card post-card animate-fade-up"
-    style="animation-delay: {{ forloop.counter0|add:1 }}00ms;"
-  >
-    <div
-      style="
+    /* Feed Polish */
+    .post-textarea {
+        resize: none;
+        background: transparent !important;
+        border: none !important;
+        min-height: 50px;
+        font-size: 1.1rem;
+        padding: 10px 0 !important;
+    }
+    .post-textarea:focus {
+        box-shadow: none !important;
+    }
+    
+    .post-actions-area {
         display: flex;
         justify-content: space-between;
-        align-items: start;
-        margin-bottom: 1rem;
-      "
-    >
-      <div style="display: flex; gap: 15px">
-        <a href="{% url 'profile' post.user.username %}">
-          <div style="width: 50px; height: 50px; position: relative;">
-            <img
-              src="{{ post.user.profile.profile_picture.url }}"
-              style="
-                width: 100%;
-                height: 100%;
-                border-radius: 50%;
-                object-fit: cover;
-                border: 2px solid var(--glass-border);
-              "
-              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
-            />
-            <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--glass-border); font-size: 1.1rem;">
-                {{ post.user.username|slice:":2" }}
-            </div>
-          </div>
-        </a>
-        <div>
-          <a
-            href="{% url 'profile' post.user.username %}"
-            style="text-decoration: none; color: white"
-          >
-            <h4 style="margin: 0; font-size: 1.1rem">
-              {{ post.user.username }}
-            </h4>
-          </a>
-          <small style="color: rgba(255, 255, 255, 0.6)">
-            {{ post.created_at|timesince }} ago • {% if post.visibility == 'public' %}
-            <i class="fas fa-globe"></i>
-            {% else%}
-            <i class="fas fa-lock"></i>
-            {% endif %}
-          </small>
-        </div>
-      </div>
+        align-items: center;
+        padding: 0.8rem 1.5rem;
+        background: rgba(0,0,0,0.2);
+        border-top: 1px solid var(--glass-border);
+    }
+    
+    .media-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 50px; /* Pill shape */
+        cursor: pointer;
+        transition: all 0.2s;
+        color: rgba(255,255,255,0.7);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    .action-btn:hover {
+        background: rgba(255,255,255,0.1);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .live-btn i { color: #ff6b6b; }
+    .photo-btn i { color: #2ed573; }
+    .video-btn i { color: #a55eea; }
+    .activity-btn i { color: #ffa502; }
 
-      {% if request.user == post.user %}
-      <a
-        href="{% url 'edit_post' post.id %}"
-        style="color: rgba(255, 255, 255, 0.5); font-size: 0.9rem"
-        ><i class="fas fa-pen"></i> Edit</a
-      >
-      {% endif %}
-    </div>
+    .submit-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .visibility-select {
+        padding: 8px 15px !important;
+        font-size: 0.9rem !important;
+        width: auto !important;
+        background: rgba(0,0,0,0.3) !important;
+    }
+    .post-submit-btn {
+        padding: 8px 25px !important;
+        font-size: 0.95rem !important;
+    }
 
-    <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 1rem">
-      {{ post.content }}
-    </p>
+    /* Mobile Polish */
+    @media (max-width: 600px) {
+        .post-actions-area {
+            flex-direction: column;
+            gap: 15px;
+            padding: 1rem;
+        }
+        .media-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+        .submit-actions {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+        .action-btn { padding: 8px; }
+        .action-btn span { display: none; } /* Icons only on small screens */
+    }
+    /* Mobile Polish */
+    @media (max-width: 600px) {
+        .post-actions-area {
+            flex-direction: column;
+            gap: 15px;
+            padding: 1rem;
+        }
+        .media-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+        .submit-actions {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+        .action-btn { padding: 8px; }
+        .action-btn span { display: none; } /* Icons only on small screens */
+    }
 
-    <!-- Shared Post Display -->
-    {% if post.shared_post %}
-    <div style="border: 1px solid var(--glass-border); border-radius: 16px; padding: 1rem; margin-bottom: 1rem; background: rgba(255,255,255,0.02);">
-        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
-             <div style="width: 30px; height: 30px; position: relative;">
-                 <img src="{{ post.shared_post.user.profile.profile_picture.url }}" 
-                      style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
-                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                 <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
-                     {{ post.shared_post.user.username|slice:":2" }}
-                 </div>
-             </div>
-             <a href="{% url 'profile' post.shared_post.user.username %}" style="color: white; text-decoration: none; font-weight: 600;">{{ post.shared_post.user.username }}</a>
-             <span style="color: rgba(255,255,255,0.5); font-size: 0.8rem;">• {{ post.shared_post.created_at|timesince }} ago</span>
-        </div>
-        <p style="margin-bottom: 10px; font-size: 0.95rem;">{{ post.shared_post.content }}</p>
-        {% if post.shared_post.image %}
-        <div style="border-radius: 12px; overflow: hidden;">
-            <img src="{{ post.shared_post.image.url }}" style="width: 100%; display: block; max-height: 300px; object-fit: cover;" onerror="this.parentElement.style.display='none'">
-        </div>
-        {% endif %}
-        {% if post.shared_post.video %}
-        <div style="border-radius: 12px; overflow: hidden;">
-            <video src="{{ post.shared_post.video.url }}" controls style="width: 100%; display: block; max-height: 300px;"></video>
-        </div>
-        {% endif %}
-    </div>
-    {% endif %}
-
-    {% if post.image %}
-    <div style="border-radius: 16px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--glass-border);">
-      <img src="{{ post.image.url }}" style="width: 100%; display: block; max-height: 500px; object-fit: cover;" />
-    </div>
-    {% endif %}
-
-    {% if post.video %}
-    <div style="border-radius: 16px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--glass-border);">
-      <video
-        src="{{ post.video.url }}"
-        controls
-        style="width: 100%; display: block; max-height: 500px;"
-      ></video>
-    </div>
-    {% endif %}
-
-    <div style="display: flex; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px solid var(--glass-border); margin-bottom: 0.5rem; color: rgba(255,255,255,0.6); font-size: 0.9rem;">
-            <span id="like-count-{{ post.id }}"><i class="fas fa-heart" style="color: #ff6b6b;"></i> {{ post.total_likes }}</span>
-            <span id="comment-count-{{ post.id }}" style="cursor: pointer; text-decoration: underline;" onclick="toggleComments('comments-{{ post.id }}')" title="View all comments">{{ post.comments.count }} Comments</span>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; gap: 5px;">
-            <button class="btn-action-post {% if request.user in post.likes.all %}liked{% endif %}" onclick="toggleLike(this, {{ post.id }})">
-                <i class="{% if request.user in post.likes.all %}fas{% else %}far{% endif %} fa-heart"></i> Like
-            </button>
-            <button onclick="toggleComments('comments-{{ post.id }}')" class="btn-action-post">
-                <i class="far fa-comment"></i> Comment
-            </button>
-            <button onclick="openShareModal('{{ request.build_absolute_uri }}', {{ post.id }}, {% if post.user == request.user %}true{% else %}false{% endif %})" class="btn-action-post">
-                <i class="fas fa-share"></i> Share
-            </button>
-        </div>
-        
-        <!-- Comments Section -->
-        <div id="comments-{{ post.id }}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
-            <div id="comments-list-{{ post.id }}">
-                {% for comment in post.comments.all %}
-                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                    <div style="width: 32px; height: 32px; position: relative; flex-shrink: 0;">
-                        <img src="{{ comment.user.profile.profile_picture.url }}" 
-                             style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" loading="lazy">
-                        <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
-                            {{ comment.user.username|slice:":2" }}
-                        </div>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 18px; max-width: 85%;">
-                        <a href="{% url 'profile' comment.user.username %}" style="text-decoration: none;">
-                            <h5 style="margin: 0; font-size: 0.85rem; color: white;">{{ comment.user.username }}</h5>
-                        </a>
-                        <p style="margin: 2px 0 0; font-size: 0.95rem; opacity: 0.9;">{{ comment.content }}</p>
-                    </div>
+    /* Desktop Home Layout */
+    .home-container {
+        display: flex;
+        gap: 30px;
+        max-width: 1000px;
+        width: 100%;
+        margin: 0 auto;
+    }
+    
+    .feed-column {
+        flex: 2;
+        max-width: 650px;
+    }
+    
+    .sidebar-column {
+        flex: 1;
+        max-width: 350px;
+        position: sticky;
+        top: 2rem;
+        height: fit-content;
+    }
+    
+    @media (max-width: 900px) {
+        .desktop-only { display: none; }
+        .home-container { justify-content: center; }
+        .feed-column { width: 100%; max-width: 600px; }
+    }
+</style>
+<div class="home-container animate-fade-up">
+    <!-- Main Feed Column -->
+    <div class="feed-column">
+      <!-- Create Post Section -->
+      <div class="glass-card create-post-card" style="margin-bottom: 2rem; padding: 0;">
+        <form method="POST" enctype="multipart/form-data" id="postForm">
+          {% csrf_token %}
+          <input type="hidden" name="create_post" value="true">
+          
+          <div style="padding: 1.5rem;">
+            <div class="post-input-wrapper" style="display: flex; gap: 15px; align-items: start;">
+                <!-- Profile Pic -->
+                <div class="post-avatar-container">
+                    <img src="{{ user.profile.profile_picture.url }}" 
+                        class="post-avatar-img"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                    
                 </div>
-                {% endfor %}
+                
+                <textarea name="content" class="glass-input post-textarea" rows="2" placeholder="What's on your mind, {{ user.username }}?"></textarea>
             </div>
             
-            <form onsubmit="submitComment(event, {{ post.id }})" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
-                {% csrf_token %}
-                <input type="hidden" name="post_id" value="{{ post.id }}">
-                <div style="width: 32px; height: 32px; position: relative; flex-shrink: 0;">
-                    <img src="{{ user.profile.profile_picture.url }}" 
-                         style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+            <div id="mediaPreview" style="display: none; margin-top: 1rem; position: relative;">
+                <button type="button" onclick="clearMedia()" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"><i class="fas fa-times"></i></button>
+                <img id="imagePreview" style="width: 100%; border-radius: 12px; display: none; max-height: 400px; object-fit: cover;">
+                <div id="videoPreview" style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; color: white; display: none;">
+                    <i class="fas fa-video" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+                    <span id="videoName"></span>
+                </div>
+            </div>
+          </div>
+
+          <div class="post-actions-area">
+              <div class="media-actions">
+                  <label class="action-btn live-btn" onclick="showToast('Live video feature coming soon!', 'info')">
+                      <i class="fas fa-video"></i> <span>Live</span>
+                  </label>
+                  
+                  <label class="action-btn photo-btn">
+                      <i class="fas fa-image"></i> <span>Photo</span>
+                      <input type="file" name="image" id="imageInput" style="display: none;" accept="image/*" onchange="previewFile('image', this)">
+                  </label>
+
+                  <label class="action-btn video-btn">
+                      <i class="fas fa-film"></i> <span>Video</span>
+                      <input type="file" name="video" id="videoInput" style="display: none;" accept="video/*" onchange="previewFile('video', this)">
+                  </label>
+
+                  <label class="action-btn activity-btn" onclick="showToast('Activity feature coming soon!', 'info')">
+                      <i class="far fa-smile"></i> <span>Activity</span>
+                  </label>
+              </div>
+
+            <div class="submit-actions">
+              <select name="visibility" class="glass-input visibility-select">
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+              </select>
+              <button type="submit" class="btn-primary post-submit-btn">Post</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Feed -->
+      {% for post in posts %}
+      <div
+        class="glass-card post-card animate-fade-up"
+        style="animation-delay: {{ forloop.counter0|add:1 }}00ms;"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+          "
+        >
+          <div style="display: flex; gap: 15px">
+            <a href="{% url 'profile' post.user.username %}">
+              <div style="width: 48px; height: 48px; position: relative;">
+                <img
+                  src="{{ post.user.profile.profile_picture.url }}"
+                  style="
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    border: 2px solid var(--glass-border);
+                  "
+                  loading="lazy"
+                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+                />
+                <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--glass-border); font-size: 1rem;">
+                    {{ post.user.username|slice:":2" }}
+                </div>
+              </div>
+            </a>
+            <div style="display: flex; flex-direction: column; justify-content: center;">
+              <a
+                href="{% url 'profile' post.user.username %}"
+                style="text-decoration: none; color: white"
+              >
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 600;">
+                  {{ post.user.username }}
+                </h4>
+              </a>
+              <small style="color: rgba(255, 255, 255, 0.5); font-size: 0.8rem;">
+                {{ post.created_at|timesince }} ago • 
+                {% if post.visibility == 'public' %}
+                <i class="fas fa-globe-americas"></i>
+                {% else %}
+                <i class="fas fa-lock"></i>
+                {% endif %}
+              </small>
+            </div>
+          </div>
+
+          {% if request.user == post.user %}
+          <a
+            href="{% url 'edit_post' post.id %}"
+            style="color: rgba(255, 255, 255, 0.5); font-size: 0.9rem"
+            ><i class="fas fa-pen"></i> Edit</a
+          >
+          {% endif %}
+        </div>
+
+        <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 1rem">
+          {{ post.content }}
+        </p>
+
+        <!-- Shared Post Display -->
+        {% if post.shared_post %}
+        <div style="border: 1px solid var(--glass-border); border-radius: 16px; padding: 1rem; margin-bottom: 1rem; background: rgba(255,255,255,0.02);">
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                 <div style="width: 30px; height: 30px; position: relative;">
+                     <img src="{{ post.shared_post.user.profile.profile_picture.url }}" 
+                          style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                     <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
+                         {{ post.shared_post.user.username|slice:":2" }}
+                     </div>
+                 </div>
+                 <a href="{% url 'profile' post.shared_post.user.username %}" style="color: white; text-decoration: none; font-weight: 600;">{{ post.shared_post.user.username }}</a>
+                 <span style="color: rgba(255,255,255,0.5); font-size: 0.8rem;">• {{ post.shared_post.created_at|timesince }} ago</span>
+            </div>
+            <p style="margin-bottom: 10px; font-size: 0.95rem;">{{ post.shared_post.content }}</p>
+            {% if post.shared_post.image %}
+            <div style="border-radius: 12px; overflow: hidden;">
+                <img src="{{ post.shared_post.image.url }}" style="width: 100%; display: block; max-height: 300px; object-fit: cover;" onerror="this.parentElement.style.display='none'">
+            </div>
+            {% endif %}
+            {% if post.shared_post.video %}
+            <div style="border-radius: 12px; overflow: hidden;">
+                <video src="{{ post.shared_post.video.url }}" controls style="width: 100%; display: block; max-height: 300px;"></video>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if post.image %}
+        <div style="border-radius: 16px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2);">
+          <img src="{{ post.image.url }}" style="width: 100%; display: block; max-height: 500px; object-fit: cover;" loading="lazy" />
+        </div>
+        {% endif %}
+
+        {% if post.video %}
+        <div style="border-radius: 16px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--glass-border);">
+          <video
+            src="{{ post.video.url }}"
+            controls
+            style="width: 100%; display: block; max-height: 500px;"
+          ></video>
+        </div>
+        {% endif %}
+
+        <div style="display: flex; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px solid var(--glass-border); margin-bottom: 0.5rem; color: rgba(255,255,255,0.6); font-size: 0.9rem;">
+                <span id="like-count-{{ post.id }}"><i class="fas fa-heart" style="color: #ff6b6b;"></i> {{ post.total_likes }}</span>
+                <span id="comment-count-{{ post.id }}" style="cursor: pointer; text-decoration: underline;" onclick="toggleComments('comments-{{ post.id }}')" title="View all comments">{{ post.comments.count }} Comments</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; gap: 5px;">
+                <button class="btn-action-post {% if request.user in post.likes.all %}liked{% endif %}" onclick="toggleLike(this, {{ post.id }})">
+                    <i class="{% if request.user in post.likes.all %}fas{% else %}far{% endif %} fa-heart"></i> Like
+                </button>
+                <button onclick="toggleComments('comments-{{ post.id }}')" class="btn-action-post">
+                    <i class="far fa-comment"></i> Comment
+                </button>
+                <button onclick="openShareModal('{{ request.build_absolute_uri }}', {{ post.id }}, {% if post.user == request.user %}true{% else %}false{% endif %})" class="btn-action-post">
+                    <i class="fas fa-share"></i> Share
+                </button>
+            </div>
+            
+            <!-- Comments Section -->
+            <div id="comments-{{ post.id }}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                <div id="comments-list-{{ post.id }}">
+                    {% for comment in post.comments.all %}
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                        <div style="width: 32px; height: 32px; position: relative; flex-shrink: 0;">
+                            <img src="{{ comment.user.profile.profile_picture.url }}" 
+                                 style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" loading="lazy">
+                            <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
+                                {{ comment.user.username|slice:":2" }}
+                            </div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 18px; max-width: 85%;">
+                            <a href="{% url 'profile' comment.user.username %}" style="text-decoration: none;">
+                                <h5 style="margin: 0; font-size: 0.85rem; color: white;">{{ comment.user.username }}</h5>
+                            </a>
+                            <p style="margin: 2px 0 0; font-size: 0.95rem; opacity: 0.9;">{{ comment.content }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <form onsubmit="submitComment(event, {{ post.id }})" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
+                    {% csrf_token %}
+                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                    <div style="width: 32px; height: 32px; position: relative; flex-shrink: 0;">
+                        <img src="{{ user.profile.profile_picture.url }}" 
+                             style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                        <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
+                            {{ user.username|slice:":2" }}
+                        </div>
+                    </div>
+                    <input type="text" name="content" class="glass-input" placeholder="Write a comment..." style="border-radius: 20px; font-size: 0.9rem; padding: 8px 15px;" required>
+                    <button type="submit" style="background: none; border: none; color: hsla(var(--primary)); cursor: pointer; padding: 5px;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+      </div>
+      {% empty %}
+      <div class="glass-card" style="text-align: center; padding: 4rem">
+        <h3>No posts yet</h3>
+        <p style="color: rgba(255, 255, 255, 0.6)">
+          Be the first to share something!
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Right Sidebar (Desktop Only) -->
+    <div class="sidebar-column desktop-only">
+        <div class="glass-card profile-summary-card">
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1rem;">
+                <div style="width: 60px; height: 60px; position: relative;">
+                    <img src="{{ user.profile.profile_picture.url }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);" 
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                    <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
+                    <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 1.2rem; background: var(--primary);">
                         {{ user.username|slice:":2" }}
                     </div>
                 </div>
-                <input type="text" name="content" class="glass-input" placeholder="Write a comment..." style="border-radius: 20px; font-size: 0.9rem; padding: 8px 15px;" required>
-                <button type="submit" style="background: none; border: none; color: hsla(var(--primary)); cursor: pointer; padding: 5px;">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </form>
+                <div>
+                    <h4 style="margin: 0; font-size: 1.1rem;">{{ user.username }}</h4>
+                    <p style="margin: 0; font-size: 0.9rem; color: rgba(255,255,255,0.6);">{{ user.profile.bio|truncatechars:30|default:"No bio yet" }}</p>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-around; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+                <div style="text-align: center;">
+                    <span style="display: block; font-weight: bold; font-size: 1.1rem;">{{ user.post_set.count }}</span>
+                    <span style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Posts</span>
+                </div>
+                <div style="text-align: center;">
+                    <span style="display: block; font-weight: bold; font-size: 1.1rem;">{{ user.profile.friends.count }}</span>
+                    <span style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Friends</span>
+                </div>
+            </div>
+            <a href="{% url 'profile' user.username %}" class="btn-primary" style="display: block; text-align: center; margin-top: 1rem; border-radius: 12px; padding: 8px;">View Profile</a>
         </div>
-  </div>
-  {% empty %}
-  <div class="glass-card" style="text-align: center; padding: 4rem">
-    <h3>No posts yet</h3>
-    <p style="color: rgba(255, 255, 255, 0.6)">
-      Be the first to share something!
-    </p>
-  </div>
-  {% endfor %}
+
+        <div class="glass-card footer-card" style="margin-top: 1rem; padding: 1rem; font-size: 0.8rem; color: rgba(255,255,255,0.4); text-align: center;">
+            <p>&copy; 2025 SocialSphere</p>
+            <p>Privacy • Terms • Cookies</p>
+        </div>
+    </div>
 </div>
 
 <script>
