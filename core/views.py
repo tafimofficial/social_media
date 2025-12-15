@@ -348,7 +348,7 @@ def add_comment_ajax(request):
             return JsonResponse({
                 'status': 'success',
                 'username': request.user.username,
-                'profile_url': request.user.profile.profile_picture.url,
+                'profile_url': request.user.profile.get_profile_picture_url,
                 'content': comment.content,
                 'count': post.comments.count()
             })

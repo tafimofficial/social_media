@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
 
+from django.templatetags.static import static
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(blank=True, max_length=500)
@@ -14,6 +16,22 @@ class Profile(models.Model):
 
     def __str__(self):
         return f'{self.user.username} Profile'
+
+    @property
+    def get_profile_picture_url(self):
+        if self.profile_picture and hasattr(self.profile_picture, 'url'):
+            if 'default_profile.png' in self.profile_picture.name:
+                return static('img/default_profile.png')
+            return self.profile_picture.url
+        return static('img/default_profile.png')
+
+    @property
+    def get_cover_photo_url(self):
+        if self.cover_photo and hasattr(self.cover_photo, 'url'):
+            if 'default_cover.png' in self.cover_photo.name:
+                return static('img/default_cover.png')
+            return self.cover_photo.url
+        return static('img/default_cover.png')
 
     @property
     def is_online(self):

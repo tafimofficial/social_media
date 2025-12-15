@@ -247,7 +247,7 @@
 </style>
 
     <!-- Search Bar -->
-    <div class="glass-card search-bar-card">
+    <div class="glass-card search-bar-card" style="color: #020202ff;">
         <form method="GET" action="{% url 'search' %}" class="search-form">
             <input type="hidden" name="type" value="{{ filter_type }}">
             <input 
@@ -256,6 +256,7 @@
                 value="{{ query }}" 
                 class="glass-input search-input" 
                 placeholder="Search..." 
+                style="color: #020202ff;"
                 autofocus
             >
             <button type="submit" class="search-btn">
@@ -289,7 +290,7 @@
                     {% for user_obj in users %}
                     <div class="glass-card user-card">
                         <div class="user-card-avatar-wrapper">
-                            <img src="{{ user_obj.profile.profile_picture.url }}" class="user-card-img">
+                            <img src="{{ user_obj.profile.get_profile_picture_url }}" class="user-card-img">
                         </div>
                         <a href="{% url 'profile' user_obj.username %}" class="user-card-name">{{ user_obj.username }}</a>
                         <p class="user-card-bio">{{ user_obj.profile.bio|truncatechars:30|default:"User" }}</p>
@@ -319,7 +320,7 @@
                 {% for post in posts %}
                 <div class="glass-card post-card search-post-card">
                     <div class="post-header">
-                        <img src="{{ post.user.profile.profile_picture.url }}" class="post-avatar">
+                        <img src="{{ post.user.profile.get_profile_picture_url }}" class="post-avatar">
                         <div class="post-info">
                             <h4 class="post-author"><a href="{% url 'profile' post.user.username %}" class="link-unstyled">{{ post.user.username }}</a></h4>
                             <small class="post-time">{{ post.created_at|timesince }} ago</small>

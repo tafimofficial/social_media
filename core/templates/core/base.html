@@ -42,14 +42,16 @@
             <i class="fas fa-sign-out-alt"></i>
         </a>
         {% endif %}
+        
+
 
         <div class="nav-links">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'search' %}" class="nav-item"><i class="fas fa-search"></i> Search</a>
+
                     <a href="{% url 'home' %}" class="nav-item"><i class="fas fa-home"></i> Home</a>
                     <a href="{% url 'profile' user.username %}" class="nav-item profile-nav-link">
                         <div class="nav-avatar-container">
-                            <img src="{{ user.profile.profile_picture.url }}" 
+                            <img src="{{ user.profile.get_profile_picture_url }}"  
                                  class="nav-avatar"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                             
@@ -79,16 +81,8 @@
         </div>
     </nav>
 
-    <main class="container main-content">
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} glass-alert">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
+    <main class="container main-content" style="padding-top: 100px;">
+
         
         {% block content %}{% endblock %}
     </main>
@@ -120,7 +114,7 @@
             </a>
             <a href="{% url 'profile' user.username %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
                 <div class="nav-avatar-container mobile-nav-avatar">
-                    <img src="{{ user.profile.profile_picture.url }}" 
+                    <img src="{{ user.profile.get_profile_picture_url }}" 
                          class="nav-avatar-img"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                     
@@ -190,6 +184,16 @@
         }, 3000);
     }
     </script>
+
+    {% if messages %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            {% for message in messages %}
+                showToast("{{ message|escapejs }}", "{{ message.tags|escapejs }}");
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
     <script>
     function updateUnreadCount() {
         fetch('/messages/unread/count/')
@@ -269,7 +273,7 @@
         </a>
         <a href="{% url 'profile' user.username %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
             <div class="mobile-nav-avatar">
-                 <img src="{{ user.profile.profile_picture.url }}" 
+                 <img src="{{ user.profile.get_profile_picture_url }}" 
                       class="nav-avatar-img"
                       onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                  

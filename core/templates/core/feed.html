@@ -29,6 +29,7 @@
     /* Feed Polish */
     .post-textarea {
         resize: none;
+        color: white !important;
         background: transparent !important;
         border: none !important;
         min-height: 50px;
@@ -37,6 +38,9 @@
     }
     .post-textarea:focus {
         box-shadow: none !important;
+    }
+    .post-textarea::placeholder {
+        color: rgba(255, 255, 255, 0.7) !important;
     }
     
     .post-actions-area {
@@ -60,7 +64,7 @@
         border-radius: 50px; /* Pill shape */
         cursor: pointer;
         transition: all 0.2s;
-        color: rgba(255,255,255,0.7);
+        color: white;
         font-weight: 500;
         font-size: 0.9rem;
     }
@@ -81,12 +85,7 @@
         gap: 10px;
     }
     
-    .visibility-select {
-        padding: 8px 15px !important;
-        font-size: 0.9rem !important;
-        width: auto !important;
-        background: rgba(0,0,0,0.3) !important;
-    }
+    /* .visibility-select styles moved to style.css */
     .post-submit-btn {
         padding: 8px 25px !important;
         font-size: 0.95rem !important;
@@ -109,26 +108,6 @@
             justify-content: space-between;
         }
         .action-btn { padding: 8px; }
-        .action-btn span { display: none; } /* Icons only on small screens */
-    }
-    /* Mobile Polish */
-    @media (max-width: 600px) {
-        .post-actions-area {
-            flex-direction: column;
-            gap: 15px;
-            padding: 1rem;
-        }
-        .media-actions {
-            width: 100%;
-            justify-content: space-between;
-        }
-        .submit-actions {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-        }
-        .action-btn { padding: 8px; }
-        .action-btn span { display: none; } /* Icons only on small screens */
     }
 
     /* Desktop Home Layout */
@@ -172,7 +151,7 @@
             <div class="post-input-wrapper" style="display: flex; gap: 15px; align-items: start;">
                 <!-- Profile Pic -->
                 <div class="post-avatar-container">
-                    <img src="{{ user.profile.profile_picture.url }}" 
+                    <img src="{{ user.profile.get_profile_picture_url }}" 
                         class="post-avatar-img"
                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                     
@@ -241,7 +220,7 @@
             <a href="{% url 'profile' post.user.username %}">
               <div style="width: 48px; height: 48px; position: relative;">
                 <img
-                  src="{{ post.user.profile.profile_picture.url }}"
+                  src="{{ post.user.profile.get_profile_picture_url }}"
                   style="
                     width: 100%;
                     height: 100%;
@@ -295,7 +274,7 @@
         <div style="border: 1px solid var(--glass-border); border-radius: 16px; padding: 1rem; margin-bottom: 1rem; background: rgba(255,255,255,0.02);">
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
                  <div style="width: 30px; height: 30px; position: relative;">
-                     <img src="{{ post.shared_post.user.profile.profile_picture.url }}" 
+                     <img src="{{ post.shared_post.user.profile.get_profile_picture_url }}" 
                           style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
                           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                      <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
@@ -358,7 +337,7 @@
                     {% for comment in post.comments.all %}
                     <div style="display: flex; gap: 10px; margin-bottom: 12px;">
                         <div style="width: 32px; height: 32px; position: relative; flex-shrink: 0;">
-                            <img src="{{ comment.user.profile.profile_picture.url }}" 
+                            <img src="{{ comment.user.profile.get_profile_picture_url }}" 
                                  style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" loading="lazy">
                             <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
@@ -379,7 +358,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="post_id" value="{{ post.id }}">
                     <div style="width: 32px; height: 32px; position: relative; flex-shrink: 0;">
-                        <img src="{{ user.profile.profile_picture.url }}" 
+                        <img src="{{ user.profile.get_profile_picture_url }}" 
                              style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                         <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 0.7rem;">
@@ -408,7 +387,7 @@
         <div class="glass-card profile-summary-card">
             <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1rem;">
                 <div style="width: 60px; height: 60px; position: relative;">
-                    <img src="{{ user.profile.profile_picture.url }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);" 
+                    <img src="{{ user.profile.get_profile_picture_url }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);" 
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                     <div class="avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; font-size: 1.2rem; background: var(--primary);">
                         {{ user.username|slice:":2" }}
