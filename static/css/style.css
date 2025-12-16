@@ -101,6 +101,9 @@ body {
     animation: float 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
     mix-blend-mode: multiply;
     /* Natural vibrant blending */
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
 }
 
 /* --- Background Animation (Pitch Black Mode) --- */
@@ -123,6 +126,10 @@ body {
     opacity: 0.3;
     animation: float 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
     mix-blend-mode: screen;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    /* Force hardware acceleration */
+    backface-visibility: hidden;
 }
 
 .blob-1 {
