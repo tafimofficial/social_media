@@ -7,12 +7,14 @@
     <title>SocialSphere</title>
     <link rel="manifest" href="{% static 'manifest.json' %}">
     <meta name="theme-color" content="#10B981">
-    <link rel="apple-touch-icon" href="{% static 'img/default_profile.png' %}">
-    <link rel="icon" sizes="192x192" href="{% static 'img/default_profile.png' %}">
-    <link rel="icon" type="image/png" href="{% static 'img/default_profile.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
+    <link rel="icon" sizes="192x192" href="{% static 'img/logo.png' %}">
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preload" href="{% static 'img/logo.png' %}" as="image">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" as="style">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
@@ -201,56 +203,66 @@
     </script>
     {% endif %}
     <script>
-    function updateUnreadCount() {
+    let pollInterval;
+    const POLL_DELAY = 5000; // 5 seconds
+
+    function updateCounts() {
+        if (document.hidden) return;
+
+        // Fetch Unread Messages
         fetch('/messages/unread/count/')
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 const badge = document.getElementById('unread-badge');
                 const mobileBadge = document.getElementById('mobile-unread-badge');
                 if (data.count > 0) {
-                    badge.innerText = data.count;
-                    badge.style.display = 'inline-block';
-                    if(mobileBadge) {
-                        mobileBadge.innerText = data.count;
-                        mobileBadge.style.display = 'inline-block';
-                    }
+                    if(badge) { badge.innerText = data.count; badge.style.display = 'inline-block'; }
+                    if(mobileBadge) { mobileBadge.innerText = data.count; mobileBadge.style.display = 'inline-block'; }
                 } else {
-                    badge.style.display = 'none';
+                    if(badge) badge.style.display = 'none';
                     if(mobileBadge) mobileBadge.style.display = 'none';
                 }
-            })
-            .catch(err => console.error('Error fetching unread count:', err));
-    }
-    
-    // Poll every 3 seconds
-    setInterval(updateUnreadCount, 3000);
-    // Initial call
-    document.addEventListener('DOMContentLoaded', updateUnreadCount);
+            }).catch(() => {}); // Silent fail
 
-    function updateFriendRequestCount() {
+        // Fetch Friend Requests
         fetch('/friend/requests/count/')
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 const badge = document.getElementById('friend-req-badge');
                 const mobileBadge = document.getElementById('mobile-friend-req-badge');
                 if (data.count > 0) {
-                    badge.innerText = data.count;
-                    badge.style.display = 'inline-block';
-                    if(mobileBadge) {
-                         mobileBadge.innerText = data.count;
-                         mobileBadge.style.display = 'inline-block';
-                    }
+                    if(badge) { badge.innerText = data.count; badge.style.display = 'inline-block'; }
+                    if(mobileBadge) { mobileBadge.innerText = data.count; mobileBadge.style.display = 'inline-block'; }
                 } else {
-                    badge.style.display = 'none';
+                    if(badge) badge.style.display = 'none';
                     if(mobileBadge) mobileBadge.style.display = 'none';
                 }
-            })
-            .catch(err => console.error('Error fetching friend request count:', err));
+            }).catch(() => {});
     }
-    
-    // Poll friend requests every 5 seconds
-    setInterval(updateFriendRequestCount, 5000);
-    document.addEventListener('DOMContentLoaded', updateFriendRequestCount);
+
+    function startPolling() {
+        if (!pollInterval) {
+            updateCounts();
+            pollInterval = setInterval(updateCounts, POLL_DELAY);
+        }
+    }
+
+    function stopPolling() {
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+    }
+
+    // Smart Polling: Stop when tab is hidden
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) stopPolling();
+        else startPolling();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!document.hidden) startPolling();
+    });
     </script>
     <!-- Mobile Bottom Navigation -->
     <nav class="mobile-bottom-nav">
