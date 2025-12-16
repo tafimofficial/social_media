@@ -1,0 +1,16 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; text-align: center;">
+    <div class="glass-card" style="padding: 2rem; max-width: 500px;">
+        <i class="fas fa-wifi" style="font-size: 4rem; color: #ef4444; margin-bottom: 1rem;"></i>
+        <h2 style="margin-bottom: 1rem;">You are offline</h2>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">
+            It seems you've lost internet connection. Check your network and try again.
+        </p>
+        <button onclick="window.location.reload()" class="btn-primary">
+            Try Again
+        </button>
+    </div>
+</div>
+{% endblock %}

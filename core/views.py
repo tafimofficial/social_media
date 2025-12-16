@@ -237,6 +237,9 @@ def get_messages_ajax(request, username):
 
 # ... (Previous Auth Views: signup, login_view, logout_view stay same) ...
 
+def offline(request):
+    return render(request, 'core/offline.html')
+
 def dashboard_view(request):
     if request.user.is_authenticated:
         return redirect('home')

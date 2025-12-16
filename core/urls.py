@@ -40,6 +40,7 @@ urlpatterns = [
     
     path('profile/<str:username>/', views.profile_view, name='profile'),
     path('home/', views.home, name='home'),
+    path('offline/', views.offline, name='offline'),
 ]
 urlpatterns += [re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT})]
 urlpatterns += [re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT})]
