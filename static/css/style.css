@@ -548,8 +548,52 @@ img {
     border: none;
 }
 
-.btn-primary:hover {
-    background: #059669;
-    /* Rich Green */
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+/* --- Auth Page Specifics (Robust Fix) --- */
+.auth-card input,
+.auth-card .glass-input,
+.auth-card input[type="text"],
+.auth-card input[type="password"],
+.auth-card input[type="email"] {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    caret-color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    color-scheme: light !important;
+    /* Force browser to treat this as light mode element */
+}
+
+/* Specific focus states to match */
+.auth-card input:focus,
+.auth-card .glass-input:focus,
+.auth-card input[type="text"]:focus,
+.auth-card input[type="password"]:focus,
+.auth-card input[type="email"]:focus {
+    background-color: #ffffff !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15) !important;
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+}
+
+.auth-card .glass-input::placeholder,
+.auth-card input::placeholder {
+    color: rgba(0, 0, 0, 0.5) !important;
+    -webkit-text-fill-color: rgba(0, 0, 0, 0.5) !important;
+    opacity: 1;
+}
+
+/* Fix Autofill - Force White Background & Black Text */
+.auth-card input:-webkit-autofill,
+.auth-card input:-webkit-autofill:hover,
+.auth-card input:-webkit-autofill:focus,
+.auth-card input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #000 !important;
+    caret-color: #000 !important;
+    background-color: #ffffff !important;
+    color: #000 !important;
+    transition: background-color 5000s ease-in-out 0s;
+    color-scheme: light !important;
 }

@@ -74,6 +74,8 @@
         z-index: 2000;
         padding-bottom: env(safe-area-inset-bottom, 20px);
         box-shadow: 0 -5px 20px rgba(var(--shadow-color), 0.05);
+        will-change: transform;
+        transform: translateZ(0);
     }
 
     /* ... existing content ... */
@@ -89,7 +91,7 @@
     .main-content {
         padding-top: 80px;
         /* Reduced top padding for mobile */
-        padding-bottom: 100px;
+        /* padding-bottom: 100px; */
         /* Space for bottom nav */
     }
 

@@ -23,9 +23,40 @@
     </div>
 </div>
 
+<style>
+    /* Direct override for inputs in this specific template */
+    .auth-card input, 
+    .auth-card input.glass-input,
+    input[type="text"],
+    input[type="password"],
+    input[type="email"] {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        background: #ffffff !important;
+        border: 1px solid #ccc !important;
+        -webkit-text-fill-color: #000000 !important;
+        caret-color: #000000 !important;
+        opacity: 1 !important;
+    }
+    
+    /* Specific Autofill override */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 30px white inset !important;
+        -webkit-text-fill-color: #000 !important;
+        background-color: white !important;
+        color: black !important;
+    }
+</style>
 <script>
     document.querySelectorAll('input').forEach(input => {
         input.classList.add('glass-input');
+        // Force inline styles via JS as a last resort
+        input.style.color = '#000000';
+        input.style.backgroundColor = '#ffffff';
+        input.style.webkitTextFillColor = '#000000';
     });
 </script>
 {% endblock %}

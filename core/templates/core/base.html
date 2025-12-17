@@ -40,7 +40,7 @@
             SocialSphere
         </a>
         
-        <a href="{% url 'search' %}" class="mobile-search-btn">
+        <a href="{% url 'search' %}" class="mobile-search-btn" >
             <i class="fas fa-search"></i>
         </a>
         
@@ -50,12 +50,13 @@
         </a>
         {% endif %}
         
-
+        
 
         <div class="nav-links">
                 {% if user.is_authenticated %}
 
                     <a href="{% url 'home' %}" class="nav-item"><i class="fas fa-home"></i> Home</a>
+                    <a href="{% url 'search' %}" class="nav-item"><i class="fas fa-search"></i> Search</a>
                     <a href="{% url 'profile' user.username %}" class="nav-item profile-nav-link">
                         <div class="nav-avatar-container">
                             <img src="{{ user.profile.get_profile_picture_url }}"
