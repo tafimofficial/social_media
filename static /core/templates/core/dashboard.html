@@ -1,0 +1,222 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-hero animate-fade-up">
+    <div class="hero-content">
+        <h1 class="hero-title">Social<span class="text-gradient">Sphere</span></h1>
+        <p class="hero-subtitle">Connect broadly. Share freely. Experience the new era of social networking.</p>
+        
+        <div class="hero-actions">
+            <a href="{% url 'login' %}" class="btn-primary glass-btn-large">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <a href="{% url 'signup' %}" class="btn-secondary glass-btn-large">
+                <i class="fas fa-user-plus"></i> Sign Up
+            </a>
+        </div>
+    </div>
+    
+    <div class="hero-visuals">
+        <div class="floating-orb orb-1"></div>
+        <div class="floating-orb orb-2"></div>
+        <div class="glass-card feature-card card-1">
+            <i class="fas fa-share-alt"></i>
+            <span>Share Moments</span>
+        </div>
+        <div class="glass-card feature-card card-2">
+            <i class="fas fa-bolt"></i>
+            <span>Lightning Fast</span>
+        </div>
+        <div class="glass-card feature-card card-3">
+            <i class="fas fa-shield-alt"></i>
+            <span>Secure & Private</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-hero {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-content {
+        max-width: 500px;
+        z-index: 2;
+    }
+
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        letter-spacing: -1px;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 2.5rem;
+        line-height: 1.6;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 20px;
+    }
+
+    .glass-btn-large {
+        padding: 15px 35px;
+        font-size: 1.1rem;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .glass-btn-large:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+
+    .hero-visuals {
+        position: relative;
+        width: 500px;
+        height: 500px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .floating-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.6;
+        animation: float 10s infinite ease-in-out;
+    }
+
+    .orb-1 {
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, #6c5ce7, transparent);
+        top: -50px;
+        left: -50px;
+        animation-delay: 0s;
+    }
+
+    .orb-2 {
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, #00cec9, transparent);
+        bottom: 0;
+        right: 0;
+        animation-delay: 5s;
+    }
+
+    .feature-card {
+        position: absolute;
+        padding: 15px 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        animation: floatCard 6s infinite ease-in-out;
+        color: white;
+        font-weight: 500;
+    }
+
+    .feature-card i {
+        font-size: 1.2rem;
+        background: -webkit-linear-gradient(45deg, #6c5ce7, #00cec9);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .card-1 { top: 20%; left: 10%; animation-delay: 0s; }
+    .card-2 { top: 50%; right: 10%; animation-delay: 2s; }
+    .card-3 { bottom: 20%; left: 30%; animation-delay: 4s; }
+
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(30px, -30px); }
+    }
+
+    @keyframes floatCard {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+
+    @media (max-width: 900px) {
+        .dashboard-hero {
+            flex-direction: column;
+            text-align: center;
+            padding: 4rem 1rem 2rem 1rem;
+            justify-content: center;
+        }
+        
+        .hero-title { 
+            font-size: 3rem; 
+        }
+        
+        .hero-actions {
+            justify-content: center;
+            flex-direction: column;
+            width: 100%;
+            gap: 15px;
+        }
+        
+        .glass-btn-large {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .hero-visuals {
+            width: 100%;
+            height: 350px;
+            margin-top: 3rem;
+            transform: scale(0.9);
+        }
+        
+        .orb-1, .orb-2 {
+            width: 180px;
+            height: 180px;
+        }
+        
+        /* Adjust cards for mobile to ensure they stay within view */
+        .card-1 { top: 10%; left: 5%; }
+        .card-2 { top: 45%; right: 5%; left: auto; }
+        .card-3 { bottom: 10%; left: 15%; }
+        
+        .feature-card {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-visuals {
+            height: 300px;
+            transform: scale(0.85);
+            margin-top: 2rem;
+        }
+        
+        .orb-1 { top: 0; left: 10%; }
+        .orb-2 { bottom: 0; right: 10%; }
+    }
+</style>
+{% endblock %}

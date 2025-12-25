@@ -1,0 +1,277 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="signup-page-wrapper">
+    <div class="signup-container animate-fade-up">
+        <!-- Left Side: Hero Section (Desktop Only) -->
+        <div class="signup-hero">
+            <div class="hero-content">
+                <h1 class="hero-title">Connect to <br><span>SocialSphere</span></h1>
+                <p class="hero-subtitle">The next generation social experience. Secure, fast, and beautiful.</p>
+                <div class="hero-features">
+                    <div class="feature-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Privacy First</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-bolt"></i>
+                        <span>Hyper Fast</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-globe"></i>
+                        <span>Global Reach</span>
+                    </div>
+                </div>
+                <div class="hero-image-wrapper">
+                    <img src="{% static 'img/signup_hero.png' %}" alt="SocialSphere Hero" class="hero-image">
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Signup Form Section -->
+        <div class="signup-form-section">
+            <div class="glass-card auth-card">
+                <div class="auth-header">
+                    <h2 class="auth-title">Join the Sphere</h2>
+                    <p class="auth-subtitle">Start your journey today</p>
+                </div>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="form-group">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}
+                        <small class="error-text">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn-primary auth-btn">
+                        <span>Create Account</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+                
+                <div class="auth-footer">
+                    <span>Already have an account?</span>
+                    <a href="{% url 'login' %}" class="link-accent">Login here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Signup Page Layout */
+    .signup-page-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 160px);
+        padding: 20px;
+    }
+
+    .signup-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 40px;
+        width: 100%;
+        max-width: 1200px;
+        align-items: center;
+    }
+
+    /* Hero Section Styles */
+    .signup-hero {
+        display: none; /* Hidden on mobile */
+        padding-right: 40px;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        line-height: 1.1;
+        margin-bottom: 20px;
+        font-weight: 800;
+    }
+
+    .hero-title span {
+        background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 40px;
+        max-width: 500px;
+    }
+
+    .hero-features {
+        display: flex;
+        gap: 25px;
+        margin-bottom: 50px;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #34D399;
+    }
+
+    .feature-item i {
+        font-size: 1.1rem;
+    }
+
+    .hero-image-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        animation: floatImg 6s ease-in-out infinite;
+    }
+
+    @keyframes floatImg {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+
+    .hero-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: transform 0.5s ease;
+    }
+
+    .hero-image:hover {
+        transform: scale(1.05);
+    }
+
+    /* Form Section Styles */
+    .signup-form-section {
+        display: flex;
+        justify-content: center;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 480px;
+        padding: 3rem !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        background: rgba(10, 10, 10, 0.8) !important;
+    }
+
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .auth-title {
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+
+    .auth-subtitle {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.95rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Input overrides for high visibility */
+    .auth-card input {
+        width: 100%;
+        padding: 14px 20px !important;
+        border-radius: 12px !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        font-size: 1rem !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .auth-card input:focus {
+        background: #ffffff !important;
+        border-color: #10B981 !important;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15) !important;
+        outline: none !important;
+    }
+
+    .auth-btn {
+        width: 100%;
+        height: 55px;
+        font-size: 1.05rem;
+        margin-top: 1rem;
+        gap: 12px;
+        border-radius: 12px !important;
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 2rem;
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.6);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .link-accent {
+        color: #10B981;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s;
+    }
+
+    .link-accent:hover {
+        color: #34D399;
+        text-decoration: underline;
+    }
+
+    /* Desktop View Optimization */
+    @media (min-width: 992px) {
+        .signup-container {
+            grid-template-columns: 1.2fr 0.8fr;
+        }
+
+        .signup-hero {
+            display: block;
+        }
+
+        .signup-page-wrapper {
+            padding: 40px;
+        }
+    }
+
+    /* Mobile Tweaks */
+    @media (max-width: 768px) {
+        .auth-card {
+            padding: 2rem !important;
+        }
+    }
+</style>
+
+<script>
+    // Ensure all inputs are properly styled and handle autofill
+    document.querySelectorAll('.auth-card input').forEach(input => {
+        input.style.color = '#000000';
+        input.style.backgroundColor = '#ffffff';
+    });
+</script>
+{% endblock %}

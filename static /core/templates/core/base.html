@@ -1,0 +1,361 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SocialSphere</title>
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#10B981">
+    <link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
+    <link rel="icon" sizes="192x192" href="{% static 'img/logo.png' %}">
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preload" href="{% static 'img/logo.png' %}" as="image">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" as="style">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <style>
+        /* Fallback for nav avatars */
+        .nav-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); }
+        .nav-avatar-container { width: 28px; height: 28px; position: relative; }
+        .mobile-nav-avatar { width: 26px; height: 26px; position: relative; }
+        .nav-avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    </style>
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <nav class="glass-nav">
+        <div class="container nav-content">
+            <a href="{% url 'home' %}" class="logo">
+            SocialSphere
+        </a>
+        
+        <a href="{% url 'search' %}" class="mobile-search-btn" >
+            <i class="fas fa-search"></i>
+        </a>
+        
+        {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="mobile-logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+        </a>
+        {% endif %}
+        
+        
+
+        <div class="nav-links">
+                {% if user.is_authenticated %}
+
+                    <a href="{% url 'home' %}" class="nav-item"><i class="fas fa-home"></i> Home</a>
+                    <a href="{% url 'search' %}" class="nav-item"><i class="fas fa-search"></i> Search</a>
+                    <a href="{% url 'profile' user.username %}" class="nav-item profile-nav-link">
+                        <div class="nav-avatar-container">
+                            <img src="{{ user.profile.get_profile_picture_url }}"
+                                 onerror="this.onerror=null;this.src='{% static 'img/default_profile.png' %}';"
+                                 class="nav-avatar"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            
+                        </div>
+                        Profile
+                    </a>
+                    <a href="{% url 'friends' %}" class="nav-item">
+                        <span class="icon-wrapper">
+                            <i class="fas fa-users"></i>
+                            <span id="friend-req-badge" class="badge">0</span>
+                        </span>
+                        Friends
+                    </a>
+                    <a href="{% url 'chat' %}" class="nav-item">
+                        <span class="icon-wrapper">
+                            <i class="fas fa-comment-dots"></i>
+                            <span id="unread-badge" class="badge">0</span>
+                        </span>
+                        Messages
+                    </a>
+                    <a href="{% url 'logout' %}" class="nav-item btn-logout">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-item">Login</a>
+                    <a href="{% url 'signup' %}" class="nav-item btn-primary">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container main-content" style="padding-top: 100px;">
+
+        
+        {% block content %}{% endblock %}
+    </main>
+
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <a href="{% url 'home' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="{% url 'search' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'search' %}active{% endif %}">
+            <i class="fas fa-search"></i>
+            <span>Search</span>
+        </a>
+        
+        {% if user.is_authenticated %}
+            <a href="{% url 'create_post' %}" class="mobile-nav-item">
+                <div class="nav-add-btn">
+                    <i class="fas fa-plus"></i>
+                </div>
+            </a>
+            <a href="{% url 'chat' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'chat' %}active{% endif %}">
+                <span class="icon-wrapper">
+                    <i class="fas fa-comment-dots"></i>
+                    <span id="mobile-unread-badge" class="badge" style="display: none;">0</span>
+                </span>
+                <span>Chat</span>
+            </a>
+            <a href="{% url 'profile' user.username %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <div class="nav-avatar-container mobile-nav-avatar">
+                    <img src="{{ user.profile.get_profile_picture_url }}" 
+                         class="nav-avatar-img"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                    
+                </div>
+                <span>Profile</span>
+            </a>
+        {% else %}
+            <a href="{% url 'login' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'login' %}active{% endif %}">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Login</span>
+            </a>
+            <a href="{% url 'signup' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'signup' %}active{% endif %}">
+                <i class="fas fa-user-plus"></i>
+                <span>Sign Up</span>
+            </a>
+        {% endif %}
+    </nav>
+
+    <script src="{% static 'js/script.js' %}" defer></script>
+    
+    <!-- Global Toast Notifications -->
+    <div id="toast-container" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 3000; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>
+
+    <script>
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        
+        let bgColor = 'rgba(0, 0, 0, 0.85)';
+        let icon = '<i class="fas fa-info-circle"></i>';
+        
+        if (type === 'success') {
+            bgColor = 'rgba(46, 213, 115, 0.9)'; // Green
+            icon = '<i class="fas fa-check-circle"></i>';
+        } else if (type === 'error') {
+            bgColor = 'rgba(255, 71, 87, 0.9)'; // Red
+            icon = '<i class="fas fa-exclamation-circle"></i>';
+        }
+        
+        toast.className = 'animate-fade-up';
+        toast.style.cssText = `
+            background: ${bgColor};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            min-width: 250px;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        `;
+        
+        toast.innerHTML = `${icon} <span>${message}</span>`;
+        
+        container.appendChild(toast);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(20px)';
+            toast.style.transition = 'all 0.4s ease';
+            setTimeout(() => toast.remove(), 400);
+        }, 3000);
+    }
+    </script>
+
+    {% if messages %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            {% for message in messages %}
+                showToast("{{ message|escapejs }}", "{{ message.tags|escapejs }}");
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
+    <script>
+    let pollInterval;
+    const POLL_DELAY = 5000; // 5 seconds
+
+    function updateCounts() {
+        if (document.hidden) return;
+
+        // Fetch Unread Messages
+        fetch('/messages/unread/count/')
+            .then(r => r.json())
+            .then(data => {
+                const badge = document.getElementById('unread-badge');
+                const mobileBadge = document.getElementById('mobile-unread-badge');
+                if (data.count > 0) {
+                    if(badge) { badge.innerText = data.count; badge.style.display = 'inline-block'; }
+                    if(mobileBadge) { mobileBadge.innerText = data.count; mobileBadge.style.display = 'inline-block'; }
+                } else {
+                    if(badge) badge.style.display = 'none';
+                    if(mobileBadge) mobileBadge.style.display = 'none';
+                }
+            }).catch(() => {}); // Silent fail
+
+        // Fetch Friend Requests
+        fetch('/friend/requests/count/')
+            .then(r => r.json())
+            .then(data => {
+                const badge = document.getElementById('friend-req-badge');
+                const mobileBadge = document.getElementById('mobile-friend-req-badge');
+                if (data.count > 0) {
+                    if(badge) { badge.innerText = data.count; badge.style.display = 'inline-block'; }
+                    if(mobileBadge) { mobileBadge.innerText = data.count; mobileBadge.style.display = 'inline-block'; }
+                } else {
+                    if(badge) badge.style.display = 'none';
+                    if(mobileBadge) mobileBadge.style.display = 'none';
+                }
+            }).catch(() => {});
+    }
+
+    function startPolling() {
+        if (!pollInterval) {
+            updateCounts();
+            pollInterval = setInterval(updateCounts, POLL_DELAY);
+        }
+    }
+
+    function stopPolling() {
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+    }
+
+    // Smart Polling: Stop when tab is hidden
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) stopPolling();
+        else startPolling();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!document.hidden) startPolling();
+    });
+    </script>
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <a href="{% url 'home' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="{% url 'search' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'search' %}active{% endif %}">
+            <i class="fas fa-search"></i>
+            <span>Search</span>
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'friends' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'friends' %}active{% endif %}">
+            <span style="position: relative; display: inline-block;">
+                <i class="fas fa-users"></i>
+                <span id="mobile-friend-req-badge" style="display: none; position: absolute; top: -5px; right: -8px; background: #ff3b30; color: white; font-size: 0.5rem; padding: 1px 4px; border-radius: 50%;">0</span>
+            </span>
+            <span>Friends</span>
+        </a>
+        <a href="{% url 'chat' %}" class="mobile-nav-item {% if 'chat' in request.resolver_match.url_name %}active{% endif %}">
+            <span style="position: relative; display: inline-block;">
+                <i class="fas fa-comment-dots"></i>
+                <span id="mobile-unread-badge" style="display: none; position: absolute; top: -5px; right: -8px; background: #ff3b30; color: white; font-size: 0.5rem; padding: 1px 4px; border-radius: 50%;">0</span>
+            </span>
+            <span>Chat</span>
+        </a>
+        <a href="{% url 'profile' user.username %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+            <div class="mobile-nav-avatar">
+                 <img src="{{ user.profile.get_profile_picture_url }}" 
+                      class="nav-avatar-img"
+                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                 
+            </div>
+            <span>Profile</span>
+        </a>
+        {% else %}
+        <a href="{% url 'login' %}" class="mobile-nav-item">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Login</span>
+        </a>
+        {% endif %}
+    </nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const videos = document.querySelectorAll('video');
+        
+        // Helper to pause all other videos
+        function pauseOthers(currentVideo) {
+            videos.forEach(video => {
+                if (video !== currentVideo && !video.paused) {
+                    video.pause();
+                }
+            });
+        }
+
+        videos.forEach(video => {
+            // Pause others when play starts
+            video.addEventListener('play', function() {
+                pauseOthers(this);
+            });
+        });
+
+        // Intersection Observer to pause videos when out of view
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) {
+                    const video = entry.target;
+                    if (!video.paused) {
+                        video.pause();
+                    }
+                }
+            });
+        }, { threshold: 0.5 }); // Pause when 50% out of view
+
+        videos.forEach(video => {
+            observer.observe(video);
+        });
+    });
+</script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('{% static 'sw.js' %}')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/tafimoff/public_html/am.ra"
+PassengerBaseURI "/"
+PassengerPython "/home/tafimoff/virtualenv/public_html/am.ra/3.12/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# DO NOT REMOVE. CLOUDLINUX PYTHON APP CONFIGURATION BEGIN
+<IfModule mod_passenger.c>
+    Options -Indexes
+    PassengerAppEnv production
+</IfModule>
+# DO NOT REMOVE. CLOUDLINUX PYTHON APP CONFIGURATION END

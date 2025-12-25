@@ -1,0 +1,46 @@
+{% extends 'core/base.html' %} {% block content %}
+<div class="container animate-fade-up" style="max-width: 800px; margin-top: 2rem">
+  <div class="glass-card" style="padding: 2rem;">
+    <h2 style="margin-bottom: 2rem; text-align: center;">Edit Profile</h2>
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="section-title">Account Info</div>
+      {% for field in u_form %}
+      <div class="form-group">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }} 
+        {% for error in field.errors %}
+        <small class="error-text">{{ error }}</small>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+      <div class="section-title" style="margin-top: 2rem;">Profile Details</div>
+      {% for field in p_form %}
+      <div class="form-group">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }} 
+        {% for error in field.errors %}
+        <small class="error-text">{{ error }}</small>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Save Changes</button>
+        <a href="{% url 'profile' user.username %}" class="btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll("input, textarea, select").forEach((input) => {
+    input.classList.add("glass-input");
+    if (input.type === "file") {
+      input.style.padding = "10px";
+    }
+  });
+</script>
+{% endblock %}
